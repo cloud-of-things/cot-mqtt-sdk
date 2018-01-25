@@ -20,7 +20,9 @@ public class BootstrapVerticle extends AbstractVerticle{
     }
 
     JsonObject registerDevice(JsonObject msg){
-
+        JsonObject replyObject = new JsonObject();
+        //ToDo: Implement MQTT-Access
+        return replyObject;
     }
 
 }

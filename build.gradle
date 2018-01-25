@@ -26,9 +26,9 @@ sourceCompatibility = '1.8'
 dependencies {
 
   compile "io.vertx:vertx-core:$vertxVersion"
-
-  compile "io.vertx:vertx-unit:$vertxVersion"
-  compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
+  compile "io.vertx:vertx-mqtt:$vertxVersion"
+  compile "io.vertx:vertx-config:$vertxVersion"
+  testCompile "io.vertx:vertx-unit:$vertxVersion"
 }
 
 mainClassName = 'de.tarent.telekom.cot.mqtt.nbiot-mqtt-api.MainVerticle'
