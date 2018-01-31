@@ -24,7 +24,7 @@ public class BootstrapVerticle extends AbstractVerticle {
     private String initialUserName = "devicebootstrap";
     private String initialPassword = "Fhdt1bb1f";
     private int BROKER_PORT = 1883;
-    private String BROKER_HOST = "";
+    private String BROKER_HOST = "localhost";
     private byte[] key;
 
     @Override
@@ -38,7 +38,7 @@ public class BootstrapVerticle extends AbstractVerticle {
 
     void registerDevice(JsonObject msg, Message handle) {
 
-        MqttClientOptions options = new MqttClientOptions().setPassword(initialPassword).setUsername(initialUserName);
+        MqttClientOptions options = new MqttClientOptions().setPassword(initialPassword).setUsername(initialUserName).setAutoKeepAlive(true);
         MqttClient client = MqttClient.create(vertx, options);
 
         Arrays.fill(key, (byte) 6);
