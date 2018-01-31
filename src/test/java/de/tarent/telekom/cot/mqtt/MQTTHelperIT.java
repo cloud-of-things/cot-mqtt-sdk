@@ -37,13 +37,13 @@ public class MQTTHelperIT {
         });
     }
 
-
+    @Test
     public void testHelperIsDeployed(TestContext context){
 
         context.assertNotNull (helper.deploymentID());
     }
 
-
+    @Test
     public void testDeviceRegister(TestContext context){
         String devId = "TestDevice";
         Async async = context.async();
@@ -52,7 +52,7 @@ public class MQTTHelperIT {
             context.assertTrue(((String)back).contains("status"));
             async.complete();
         });
-        async.awaitSuccess();
+        async.awaitSuccess(3000);
     }
 
     @Test
@@ -73,6 +73,6 @@ public class MQTTHelperIT {
             }
             async.complete();
         });
-        async.awaitSuccess();
+        async.awaitSuccess(3000);
     }
 }
