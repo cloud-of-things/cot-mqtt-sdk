@@ -1,8 +1,10 @@
 package de.tarent.telekom.cot.mqtt;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
 public class BootstrapVerticle extends AbstractVerticle{
@@ -12,17 +14,15 @@ public class BootstrapVerticle extends AbstractVerticle{
         EventBus eb = vertx.eventBus();
 
         eb.consumer("register", msg -> {
-            JsonObject status = registerDevice((JsonObject)msg.body());
-            msg.reply(status);
+            registerDevice((JsonObject)msg.body(), msg);
         });
-
     }
 
-    JsonObject registerDevice(JsonObject msg){
+    void registerDevice(JsonObject msg, Message handle){
         JsonObject replyObject = new JsonObject();
         //ToDo: Implement MQTT-Access
         replyObject.put("status", "registered");
-        return replyObject;
+        handle.reply(replyObject);
     }
 
 }
