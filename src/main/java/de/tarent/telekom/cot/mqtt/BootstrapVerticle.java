@@ -9,7 +9,6 @@ public class BootstrapVerticle extends AbstractVerticle{
 
     @Override
     public void start() throws Exception {
-        vertx = Vertx.vertx();
         EventBus eb = vertx.eventBus();
 
         eb.consumer("register", msg -> {
@@ -22,6 +21,7 @@ public class BootstrapVerticle extends AbstractVerticle{
     JsonObject registerDevice(JsonObject msg){
         JsonObject replyObject = new JsonObject();
         //ToDo: Implement MQTT-Access
+        replyObject.put("status", "registered");
         return replyObject;
     }
 
