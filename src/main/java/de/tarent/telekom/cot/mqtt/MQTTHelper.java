@@ -1,12 +1,15 @@
 package de.tarent.telekom.cot.mqtt;
 
+import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import java.util.Properties;
 import java.util.function.Consumer;
 
 public class MQTTHelper extends AbstractVerticle {
@@ -18,7 +21,7 @@ public class MQTTHelper extends AbstractVerticle {
     /**
         Starts the included verticles
      */
-    private static void initAPI(){
+    private static void initAPI(JsonObject prop){
         Vertx v = Vertx.vertx();
         Configuration config = new Configuration();
         v.deployVerticle(config);
@@ -33,9 +36,22 @@ public class MQTTHelper extends AbstractVerticle {
      * Method returns an MQTTHelper instance and starts the vertx instance if not done before
      * @return MQTTHelpder instance
      */
-    public static MQTTHelper getInstance(){
+    public static MQTTHelper getInstance(Properties properties){
         if (helper == null){
-            initAPI();
+            JsonObject o = JsonHelper.from(properties);
+            logger.info(o.encodePrettily());
+            initAPI(o);
+        }
+        return helper;
+    }
+
+    /**
+     * Method returns an MQTTHelper instance and starts the vertx instance if not done before
+     * @return MQTTHelpder instance
+     */
+    public static MQTTHelper getInstance(JsonObject properties){
+        if (helper == null){
+            initAPI(properties);
         }
         return helper;
     }
