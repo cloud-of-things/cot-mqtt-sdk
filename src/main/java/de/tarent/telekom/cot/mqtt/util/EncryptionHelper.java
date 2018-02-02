@@ -22,11 +22,9 @@ public class EncryptionHelper {
     /**
      * The method that formats the data for the encryption then calls the XTEA in
      * order to perform the encryption.
-     * 
-     * @param secret
-     *            that is used for the encryption, can only be 16 byte long.
-     * @param data
-     *            to be encrypted, the length is arbitrary.
+     *
+     * @param secret that is used for the encryption, can only be 16 byte long.
+     * @param data   to be encrypted, the length is arbitrary.
      * @return the data after it is encrypted, in byte array type.
      * @throws IllegalArgumentException
      */
@@ -37,7 +35,7 @@ public class EncryptionHelper {
 
         byte[] paddedData = pad(data);
 
-        for (int i=0; i<paddedData.length; i+=BLOCK_SIZE) {
+        for (int i = 0; i < paddedData.length; i += BLOCK_SIZE) {
             engine.processBlock(paddedData, i, paddedData, i);
         }
 
@@ -49,12 +47,10 @@ public class EncryptionHelper {
      * The method that receives the encrypted data in an byte array format. Decrypts
      * the data. Removes the additional bytes due to padding and returns the
      * decrypted data.
-     * 
-     * @param secret
-     *            that is used to decrypt, should be identical to the key that is
-     *            used for the encryption.
-     * @param data
-     *            to be decrypted.
+     *
+     * @param secret that is used to decrypt, should be identical to the key that is
+     *               used for the encryption.
+     * @param data   to be decrypted.
      * @return data that is decrypted, in bytes.
      * @throws IllegalArgumentException If syntactically invalid encrypted data is passed.
      */
@@ -67,13 +63,13 @@ public class EncryptionHelper {
         final XTEAEngine engine = new XTEAEngine();
         engine.init(false, new KeyParameter(secret.getKey()));
 
-        for (int i=0; i<data.length; i+=BLOCK_SIZE) {
+        for (int i = 0; i < data.length; i += BLOCK_SIZE) {
             engine.processBlock(data, i, data, i);
         }
         assertValidPadding(data);
 
         final int paddingLength = getPaddingLength(data);
-        byte[] shortenedArray = new byte[data.length - paddingLength];
+        final byte[] shortenedArray = new byte[data.length - paddingLength];
 
         System.arraycopy(data, 0, shortenedArray, 0, data.length - paddingLength);
 
@@ -83,18 +79,17 @@ public class EncryptionHelper {
     /**
      * Prepares the data for the encryption using the PKCS7 padding method
      * (https://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7)
-     * 
-     * @param data,
-     *            byte array that is to be padded.
+     *
+     * @param data, byte array that is to be padded.
      * @return padded data, byte array
      */
     public byte[] pad(@Nonnull final byte[] data) {
-        int multiple = 8;
-        int initialLength = data.length;
+        final int multiple = 8;
+        final int initialLength = data.length;
 
-        int paddingByte =  multiple - (initialLength % multiple);
+        final int paddingByte = multiple - (initialLength % multiple);
 
-        byte[] paddedData = new byte[initialLength + paddingByte];
+        final byte[] paddedData = new byte[initialLength + paddingByte];
 
         System.arraycopy(data, 0, paddedData, 0, initialLength);
 
@@ -107,9 +102,9 @@ public class EncryptionHelper {
 
     /**
      * Asserts that the given data has a valid block size.
-     *
+     * <p>
      * Size *must* be:
-     *
+     * <p>
      * - a multiple of 8
      * - at least 8
      *
@@ -117,16 +112,19 @@ public class EncryptionHelper {
      */
     private void assertValidBlockSize(@Nonnull final byte[] encryptedData) {
         if (encryptedData.length < BLOCK_SIZE) {
-            throw new IllegalArgumentException("Encrypted data must consist of at least one block of size " + BLOCK_SIZE + ".");
+            throw new IllegalArgumentException(
+                "Encrypted data must consist of at least one block of size " + BLOCK_SIZE + ".");
         }
         if (encryptedData.length % BLOCK_SIZE != 0) {
-            throw new IllegalArgumentException("Encrypted data is not padded, byte length must be a multiple of " + BLOCK_SIZE + ". Actual length is " + encryptedData.length + ".");
+            throw new IllegalArgumentException(
+                "Encrypted data is not padded, byte length must be a multiple of " + BLOCK_SIZE + ". Actual length is "
+                    + encryptedData.length + ".");
         }
     }
 
     /**
      * Asserts that the given byte sequence has a valid padding according to the PKCS7.
-     *
+     * <p>
      * - A padding *must* exist
      * - Padding bytes are in range [1..8]
      * - The value of the padding bytes equals the number of padded bytes
@@ -137,7 +135,8 @@ public class EncryptionHelper {
     private void assertValidPadding(@Nonnull final byte[] decryptedData) {
         final int paddingLength = getPaddingLength(decryptedData);
         if (paddingLength < 1 || paddingLength > 8) {
-            throw new IllegalArgumentException("Communicated padding length must be in range [1..8]. Actual value is " + paddingLength + ".");
+            throw new IllegalArgumentException(
+                "Communicated padding length must be in range [1..8]. Actual value is " + paddingLength + ".");
         }
 
         for (int i = 0; i < paddingLength; i++) {
@@ -145,13 +144,16 @@ public class EncryptionHelper {
                 // Everything ok, the padding byte has the expected value.
                 continue;
             }
-            String message = "Expected exactly " + paddingLength + " padding bytes with value " + paddingLength + ", ";
-            message += "but got padding sequence [";
-            for (int j = 0;  j < paddingLength; j++) {
-                message += (int)decryptedData[decryptedData.length - paddingLength + j] + " ";
+
+            final String message = "Expected exactly " + paddingLength + " padding bytes with value " + paddingLength
+                + ", but got padding sequence [";
+            final StringBuilder errorMessage = new StringBuilder(message);
+            for (int j = 0; j < paddingLength; j++) {
+                errorMessage.append((int) decryptedData[decryptedData.length - paddingLength + j]).append("\n");
             }
-            message = message.trim() + "].";
-            throw new IllegalArgumentException(message);
+
+            final String trimmedMessage = errorMessage.toString().trim() + "].";
+            throw new IllegalArgumentException(trimmedMessage);
         }
     }
 
@@ -162,6 +164,6 @@ public class EncryptionHelper {
      * @return The padding length in range [1..8].
      */
     private int getPaddingLength(final byte[] decryptedData) {
-        return (int)decryptedData[decryptedData.length - 1];
+        return (int) decryptedData[decryptedData.length - 1];
     }
 }
