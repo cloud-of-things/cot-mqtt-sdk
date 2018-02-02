@@ -21,7 +21,7 @@ public class MQTTHelper extends AbstractVerticle {
     /**
         Starts the included verticles
      */
-    private static void initAPI(JsonObject prop){
+    private static void initAPI(){
         Vertx v = Vertx.vertx();
         Configuration config = new Configuration();
         v.deployVerticle(config);
@@ -36,22 +36,9 @@ public class MQTTHelper extends AbstractVerticle {
      * Method returns an MQTTHelper instance and starts the vertx instance if not done before
      * @return MQTTHelpder instance
      */
-    public static MQTTHelper getInstance(Properties properties){
+    public static MQTTHelper getInstance(){
         if (helper == null){
-            JsonObject o = JsonHelper.from(properties);
-            logger.info(o.encodePrettily());
-            initAPI(o);
-        }
-        return helper;
-    }
-
-    /**
-     * Method returns an MQTTHelper instance and starts the vertx instance if not done before
-     * @return MQTTHelpder instance
-     */
-    public static MQTTHelper getInstance(JsonObject properties){
-        if (helper == null){
-            initAPI(properties);
+            initAPI();
         }
         return helper;
     }
@@ -62,9 +49,11 @@ public class MQTTHelper extends AbstractVerticle {
         helper = null;
     }
 
-    public void registerDevice(String deviceId, Consumer callback){
+    public void registerDevice(String deviceId, Properties prop, Consumer callback){
         EventBus eb = vertx.eventBus();
-        JsonObject msg = new JsonObject().put("deviceId", deviceId);
+        JsonObject msg = JsonHelper.from(prop);
+        eb.publish("setConfig", msg);
+        msg.put("deviceId", deviceId);
         eb.send("register", msg, result ->{
             if (result.succeeded()){
                 JsonObject regresult = (JsonObject)result.result().body();

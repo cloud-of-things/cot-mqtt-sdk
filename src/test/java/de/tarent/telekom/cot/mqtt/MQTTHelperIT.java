@@ -37,7 +37,7 @@ public class MQTTHelperIT {
         prop.setProperty("bootstrap.brokerURI","nb-iot.int2-ram.m2m.telekom.com" );
         prop.setProperty("bootstrap.brokerPort","1883" );
         JsonObject conf = JsonHelper.from(prop);
-        helper = MQTTHelper.getInstance(prop);
+        helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
         EventBus eb = vertx.eventBus();
         eb.publish("setConfig", conf);
@@ -57,18 +57,6 @@ public class MQTTHelperIT {
     @Test
     public void testHelperIsDeployed(TestContext context){
         context.assertNotNull (helper.deploymentID());
-    }
-
-    @Test
-    public void testDeviceRegister(TestContext context){
-        String devId = "TestDevice";
-        Async async = context.async();
-        helper.registerDevice(devId, back ->{
-            logger.info("Back:"+back);
-            context.assertTrue(((String)back).contains("status"));
-            async.complete();
-        });
-        async.awaitSuccess(3000);
     }
 
     @Test

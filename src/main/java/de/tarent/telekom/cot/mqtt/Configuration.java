@@ -1,28 +1,18 @@
 package de.tarent.telekom.cot.mqtt;
 
-import io.vertx.config.ConfigRetriever;
-import io.vertx.config.ConfigRetrieverOptions;
-import io.vertx.config.ConfigStoreOptions;
-import io.vertx.config.spi.utils.JsonObjectHelper;
+
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-
-import java.util.Properties;
-import java.util.function.Consumer;
 
 
 public class Configuration extends AbstractVerticle {
 
     Logger logger = LoggerFactory.getLogger(Configuration.class);
 
-    JsonObject conf;
-
-    ConfigRetriever retriever;
-
+    JsonObject conf = new JsonObject();
 
     @Override
     public void start(){
@@ -36,22 +26,7 @@ public class Configuration extends AbstractVerticle {
             JsonObject msg = (JsonObject)h.body();
             setConfig(msg);
         });
-        ConfigRetrieverOptions opt = new ConfigRetrieverOptions();
-        opt
-                .addStore(
-                        new ConfigStoreOptions().setType("json")
-                                .setConfig(vertx.getOrCreateContext().config()))
-                .addStore(
-                        new ConfigStoreOptions().setType("sys").setConfig(new JsonObject().put("cache", false))
-                )
-                .addStore(new ConfigStoreOptions().setType("env")
-                );
-        retriever = ConfigRetriever.create(vertx, opt);
-        retriever.getConfig(c -> {
-            if (c.succeeded()){
-                conf = c.result();
-            }
-        });
+
         logger.info("Configuration deployed");
     }
 
