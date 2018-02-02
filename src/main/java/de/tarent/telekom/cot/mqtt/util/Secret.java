@@ -39,20 +39,21 @@ public class Secret {
     }
 
     /**
+     * Constructor.
+     *
      * @param key The secret key.
+     * @throws IllegalArgumentException when the key length is not exactly 16 bytes
      */
     public Secret(@Nonnull final byte[] key) {
         Objects.requireNonNull(key);
         if (key.length != KEY_LENGTH_IN_BYTES) {
-            throw new IllegalArgumentException("The key must have a length of exactly " + KEY_LENGTH_IN_BYTES + " bytes.");
+            throw new IllegalArgumentException(
+                "The key must have a length of exactly " + KEY_LENGTH_IN_BYTES + " bytes.");
         }
         this.key = new byte[KEY_LENGTH_IN_BYTES];
         System.arraycopy(key, 0, this.key, 0, KEY_LENGTH_IN_BYTES);
     }
 
-    /**
-     * @return The key of 16 bytes.
-     */
     @Nonnull
     public byte[] getKey() {
         return key;
