@@ -2,17 +2,14 @@ package de.tarent.telekom.cot.mqtt;
 
 
 import de.tarent.telekom.cot.mqtt.util.JsonHelper;
-import io.vertx.core.Context;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.unit.*;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.unit.report.ReportOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +27,7 @@ public class MQTTHelperIT {
     Vertx vertx;
 
     @Before
-    public void before(TestContext context){
+    public void before(){
         Properties prop = new Properties();
         prop.setProperty("bootstrap.initialuser","devicebootstrap");
         prop.setProperty("bootstrap.initialpassword","Fhdt1bb1f" );
@@ -44,7 +41,7 @@ public class MQTTHelperIT {
     }
 
     @After
-    public void after(TestContext context){
+    public void after(){
         Set<String> list = vertx.deploymentIDs();
         if (list!= null && list.size()>0) {
             list.forEach(id -> {

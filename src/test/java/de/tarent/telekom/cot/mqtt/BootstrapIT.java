@@ -28,7 +28,7 @@ public class BootstrapIT {
     Vertx vertx;
 
     @Before
-    public void before(TestContext context){
+    public void before(){
         Properties prop = new Properties();
         prop.setProperty("bootstrap.initialuser","devicebootstrap");
         prop.setProperty("bootstrap.initialpassword","Fhdt1bb1f" );
@@ -46,7 +46,7 @@ public class BootstrapIT {
     }
 
     @After
-    public void after(TestContext context){
+    public void after(){
         Set<String> list = vertx.deploymentIDs();
         if (list!= null && list.size()>0) {
             list.forEach(id -> {
