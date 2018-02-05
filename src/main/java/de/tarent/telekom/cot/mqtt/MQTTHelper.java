@@ -1,12 +1,15 @@
 package de.tarent.telekom.cot.mqtt;
 
+import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import java.util.Properties;
 import java.util.function.Consumer;
 
 public class MQTTHelper extends AbstractVerticle {
@@ -46,9 +49,11 @@ public class MQTTHelper extends AbstractVerticle {
         helper = null;
     }
 
-    public void registerDevice(String deviceId, Consumer callback){
+    public void registerDevice(String deviceId, Properties prop, Consumer callback){
         EventBus eb = vertx.eventBus();
-        JsonObject msg = new JsonObject().put("deviceId", deviceId);
+        JsonObject msg = JsonHelper.from(prop);
+        eb.publish("setConfig", msg);
+        msg.put("deviceId", deviceId);
         eb.send("register", msg, result ->{
             if (result.succeeded()){
                 JsonObject regresult = (JsonObject)result.result().body();
