@@ -21,7 +21,7 @@ import java.util.Properties;
 import java.util.Set;
 
 @RunWith(VertxUnitRunner.class)
-public class BootsTrapIT {
+public class BootstrapIT {
 
     static Logger logger = LoggerFactory.getLogger(MQTTHelperIT.class);
     MQTTHelper helper;
