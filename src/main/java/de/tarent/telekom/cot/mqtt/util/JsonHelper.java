@@ -7,13 +7,15 @@ import java.util.Properties;
 public class JsonHelper {
 
     /**
-     * Converts java.util.Properties in JsonObject as simple key-value-pairs. Alle Values are used as Strings
-     * @param prop
-     * @return
+     * Converts the given {@link Properties} into a {@link JsonObject} as simple key value pairs. All values are used as
+     * Strings.
+     *
+     * @param prop the {@link Properties} to convert
+     * @return the converted {@link JsonObject}
      */
-    public static JsonObject from(Properties prop){
+    public static JsonObject from(Properties prop) {
         JsonObject out = new JsonObject();
-        prop.stringPropertyNames().forEach(k ->{
+        prop.stringPropertyNames().forEach(k -> {
             out.put(k, prop.getProperty(k));
         });
         return out;
