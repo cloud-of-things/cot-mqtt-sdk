@@ -49,6 +49,12 @@ public class MQTTHelper extends AbstractVerticle {
         helper = null;
     }
 
+    /**
+     *
+     * @param deviceId -IccId of device
+     * @param prop - {@link Properties} contains connection parameter like Uri, port or credentials
+     * @param callback - Callback function to receive the created credentials
+     */
     public void registerDevice(String deviceId, Properties prop, Consumer callback){
         EventBus eb = vertx.eventBus();
         JsonObject msg = JsonHelper.from(prop);
@@ -57,6 +63,7 @@ public class MQTTHelper extends AbstractVerticle {
         eb.send("register", msg, result ->{
             if (result.succeeded()){
                 JsonObject regresult = (JsonObject)result.result().body();
+                eb.publish("setConfig", regresult);
                 //ToDo:prepare ReturnMSG
                 callback.accept(regresult.encodePrettily());
             }else{

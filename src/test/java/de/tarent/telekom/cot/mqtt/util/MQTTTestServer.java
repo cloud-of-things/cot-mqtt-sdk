@@ -15,6 +15,7 @@ import java.util.List;
 
 public class MQTTTestServer extends AbstractVerticle {
 
+    Logger logger = LoggerFactory.getLogger(MQTTTestServer.class);
     // Convenience method so you can run it in your IDE
     public static void main(String[] args) {
         Vertx.vertx().deployVerticle(new MQTTTestServer());
@@ -31,11 +32,13 @@ public class MQTTTestServer extends AbstractVerticle {
 
         server.endpointHandler(endpoint -> {
 
-            System.out.println("connected client " + endpoint.clientIdentifier());
-
+            logger.info("connected client " + endpoint.clientIdentifier());
+            if (endpoint.auth() != null){
+                logger.info(endpoint.auth().toJson().encodePrettily());
+            }
             endpoint.publishHandler(message -> {
 
-                System.out.println("Just received message on [" + message.topicName() + "] payload [" +
+                logger.info("Just received message on [" + message.topicName() + "] payload [" +
                         message.payload() + "] with QoS [" +
                         message.qosLevel() + "]");
                 endpoint.publish(message.topicName(),message.payload(), message.qosLevel(), false, false);
