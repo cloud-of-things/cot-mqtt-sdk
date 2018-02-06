@@ -29,6 +29,7 @@ public class MQTTTestServer extends AbstractVerticle {
                 .setHost("0.0.0.0");
 
         MqttServer server = MqttServer.create(vertx, options);
+        List<Subscription> subscriptions = new ArrayList<>();
 
         server.endpointHandler(endpoint -> {
 
@@ -37,11 +38,21 @@ public class MQTTTestServer extends AbstractVerticle {
                 logger.info(endpoint.auth().toJson().encodePrettily());
             }
             endpoint.publishHandler(message -> {
-
                 logger.info("Just received message on [" + message.topicName() + "] payload [" +
                         message.payload() + "] with QoS [" +
                         message.qosLevel() + "]");
-                endpoint.publish(message.topicName(),message.payload(), message.qosLevel(), false, false);
+                subscriptions.forEach(s ->{
+                    if (s.getTopic().equals(message.topicName()) && s.getQos().equals(message.qosLevel())){
+                        s.getEndpoint().publish(message.topicName(),message.payload(), message.qosLevel(), false, false);
+                    }
+                });
+            });
+            endpoint.subscribeHandler(sh ->{
+               sh.topicSubscriptions().forEach(ts ->{
+                   Subscription s = new Subscription(ts.topicName(), endpoint, ts.qualityOfService());
+                   subscriptions.add(s);
+                   logger.info(ts.topicName()+" with QOS " + ts.qualityOfService().name() +" subscribed");
+               });
             });
 
             endpoint.accept(false);

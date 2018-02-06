@@ -31,42 +31,45 @@ public class BootstrapVerticle extends AbstractVerticle {
     }
 
     void registerDevice(JsonObject msg, Message handle) {
-
+        LOGGER.info(msg.encodePrettily());
         MqttClientOptions options = new MqttClientOptions().setPassword(msg.getString("initialPassword")).setUsername(msg.getString("initialUser")).setAutoKeepAlive(true);
         client = MqttClient.create(vertx, options);
 
         client.publishHandler(s -> {
             try {
-                String message = new String(s.payload().getBytes(), "UTF-8");
-                System.out.println(String.format("Receive message with content: \"%s\" from topic \"%s\"", message, s.topicName()));
-                //client.disconnect();
-                JsonObject replyObject = new JsonObject();
-                replyObject.put("status", "registered");
-                replyObject.put("credentials", message);
-                handle.reply(replyObject);
-
+                if (s.topicName().equals(msg.getString("subscribe_topic"))) {
+                    String message = new String(s.payload().getBytes(), "UTF-8");
+                    LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"", message, s.topicName()));
+                    //client.disconnect();
+                    JsonObject replyObject = new JsonObject();
+                    replyObject.put("status", "registered");
+                    replyObject.put("credentials", message);
+                    handle.reply(replyObject);
+                }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
         });
 
         //connect and publish on /iccid
-        client.connect(msg.getInteger("brokerPort"), msg.getString("brokerURI"), ch -> {
+        int port = Integer.parseInt(msg.getString("brokerPort"));
+        client.connect(port, msg.getString("brokerURI"), ch -> {
             if (ch.succeeded()) {
                 System.out.println("Connected to a server");
                 client.publish(
-                    msg.getValue("topic").toString(),
+                    msg.getValue("publish_topic").toString(),
                     Buffer.buffer(msg.getValue("message").toString()),
-                    MqttQoS.EXACTLY_ONCE,
+                    MqttQoS.AT_LEAST_ONCE,
                     false,
                     false,
-                    s -> System.out.println("Publish sent to a server"));
+                    s -> LOGGER.info("Publish sent to a server"));
             } else {
-                System.out.println("Failed to connect to a server");
-                System.out.println(ch.cause());
-            }
-        }).subscribe(SmartRestMqttTopics.getBootstrapResponseTopic(msg.getValue("topic").toString()), 0);
+                LOGGER.error("Failed to connect to a server", ch.cause());
 
+            }
+            client.subscribe(msg.getString("subscribe_topic"), MqttQoS.AT_LEAST_ONCE.value());
+
+        });
     }
 
 }

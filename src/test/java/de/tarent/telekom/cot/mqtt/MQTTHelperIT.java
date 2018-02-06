@@ -31,7 +31,7 @@ public class MQTTHelperIT {
         Properties prop = new Properties();
         prop.setProperty("bootstrap.initialuser","devicebootstrap");
         prop.setProperty("bootstrap.initialpassword","Fhdt1bb1f" );
-        prop.setProperty("bootstrap.brokerURI","nb-iot.int2-ram.m2m.telekom.com" );
+        prop.setProperty("bootstrap.brokerURI","localhost" );
         prop.setProperty("bootstrap.brokerPort","1883" );
         JsonObject conf = JsonHelper.from(prop);
         helper = MQTTHelper.getInstance();
