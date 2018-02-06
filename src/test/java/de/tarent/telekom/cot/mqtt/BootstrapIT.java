@@ -50,7 +50,7 @@ public class BootstrapIT {
         Set<String> list = vertx.deploymentIDs();
         if (list!= null && list.size()>0) {
             list.forEach(id -> {
-                logger.info(id);
+                logger.info("to undeploy:"+id);
                 vertx.undeploy(id);
             });
         }
