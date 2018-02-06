@@ -8,9 +8,6 @@ public class SmartRestMqttTopics {
     private static final String REQUEST_TOPIC_PREFIX = "ms";
     private static final String RESPONSE_TOPIC_PREFIX = "mr";
 
-    //needs to be changed replaced with iccid from config
-    private static final String DUMMY_ICCID = "151523234";
-
     public static String getBootstrapRequestTopicPrefix() {
         return BOOTSTRAP_REQUEST_TOPIC_PREFIX;
     }
@@ -19,12 +16,12 @@ public class SmartRestMqttTopics {
         return BOOTSTRAP_RESPONSE_TOPIC_PREFIX;
     }
 
-    public static String getBootstrapRequestTopic() {
-        return BOOTSTRAP_REQUEST_TOPIC_PREFIX + "/";
+    public static String getBootstrapRequestTopic(String iccid) {
+        return BOOTSTRAP_REQUEST_TOPIC_PREFIX + "/" + iccid;
     }
 
-    public static String getBootstrapResponseTopic() {
-        return BOOTSTRAP_RESPONSE_TOPIC_PREFIX + "/";
+    public static String getBootstrapResponseTopic(String iccid) {
+        return BOOTSTRAP_RESPONSE_TOPIC_PREFIX + "/" + iccid;
     }
 
     public static String getRequestTopicPrefix() {
