@@ -29,16 +29,8 @@ public class BootstrapIT {
 
     @Before
     public void before(){
-        Properties prop = new Properties();
-        prop.setProperty("bootstrap.initialuser","devicebootstrap");
-        prop.setProperty("bootstrap.initialpassword","Fhdt1bb1f" );
-        prop.setProperty("bootstrap.brokerURI","nb-iot.int2-ram.m2m.telekom.com" );
-        prop.setProperty("bootstrap.brokerPort","1883" );
-        JsonObject conf = JsonHelper.from(prop);
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
-        EventBus eb = vertx.eventBus();
-        eb.publish("setConfig", conf);
         MQTTTestServer server = new MQTTTestServer();
         vertx.deployVerticle(server);
         MQTTTestClient client = new MQTTTestClient();
@@ -59,18 +51,21 @@ public class BootstrapIT {
     @Test
     public void testDeviceRegister(TestContext context){
         Properties prop = new Properties();
-        prop.setProperty("bootstrap.initialuser","devicebootstrap");
-        prop.setProperty("bootstrap.initialpassword","Fhdt1bb1f" );
-        prop.setProperty("bootstrap.brokerURI","nb-iot.int2-ram.m2m.telekom.com" );
-        prop.setProperty("bootstrap.brokerPort","1883" );
-        String devId = "TestDevice";
+        prop.setProperty("initialUser","devicebootstrap");
+        prop.setProperty("initialPassword","Fhdt1bb1f" );
+        prop.setProperty("brokerURI","localhost" );
+        prop.setProperty("brokerPort","1883" );
+        prop.setProperty("publish_topic", "/ss/testDevice");
+        prop.setProperty("subscribe_topic", "/sr/testDevice");
+        prop.setProperty("message", "test1234567890ab");
+        String devId = "testDevice";
         Async async = context.async();
         helper.registerDevice(devId, prop,back ->{
             logger.info("Back:"+back);
             context.assertTrue(((String)back).contains("status"));
             async.complete();
         });
-        async.awaitSuccess(3000);
+        async.awaitSuccess();
     }
 
 }

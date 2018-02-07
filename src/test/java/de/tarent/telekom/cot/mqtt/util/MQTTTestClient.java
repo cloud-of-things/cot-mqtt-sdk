@@ -41,7 +41,7 @@ public class MQTTTestClient extends AbstractVerticle {
                 byte[] toSend = encHelper.encrypt(secret, TESTPW.getBytes());
                 mqttClient.publish(MQTT_TESTPUBLISH,
                         Buffer.buffer(toSend),
-                        MqttQoS.AT_MOST_ONCE,
+                        MqttQoS.AT_LEAST_ONCE,
                         false,
                         false,
                         finishHandler -> {
@@ -63,28 +63,27 @@ public class MQTTTestClient extends AbstractVerticle {
         });
         mqttClient.connect(BROKER_PORT, BROKER_HOST, ch -> {
             if (ch.succeeded()) {
-                System.out.println("Connected to a server");
-                mqttClient.subscribe(MQTT_TOPIC,MqttQoS.AT_MOST_ONCE.value());
-                mqttClient.subscribe(MQTT_TESTSUBSCRIPTION, MqttQoS.AT_MOST_ONCE.value());
-                mqttClient.subscribe(MQTT_TESTPUBLISH, MqttQoS.AT_MOST_ONCE.value());
-                mqttClient.publish(
-                        MQTT_TOPIC,
-                        Buffer.buffer(MQTT_MESSAGE),
-                        MqttQoS.AT_MOST_ONCE,
-                        false,
-                        false);
-                mqttClient.publish(
-                        MQTT_TESTSUBSCRIPTION,
-                        Buffer.buffer(SECRETKEY),
-                        MqttQoS.AT_MOST_ONCE,
-                        false,
-                        false
-                );
+                logger.info("Connected to a server");
+                mqttClient.subscribe(MQTT_TOPIC,MqttQoS.AT_LEAST_ONCE.value());
+                mqttClient.subscribe(MQTT_TESTSUBSCRIPTION, MqttQoS.AT_LEAST_ONCE.value());
+//                mqttClient.subscribe(MQTT_TESTPUBLISH, MqttQoS.AT_LEAST_ONCE.value());
+//                mqttClient.publish(
+//                        MQTT_TOPIC,
+//                        Buffer.buffer(MQTT_MESSAGE),
+//                        MqttQoS.AT_MOST_ONCE,
+//                        false,
+//                        false);
+//                mqttClient.publish(
+//                        MQTT_TESTSUBSCRIPTION,
+//                        Buffer.buffer(SECRETKEY),
+//                        MqttQoS.AT_MOST_ONCE,
+//                        false,
+//                        false
+//                );
 
 
             } else {
-                System.out.println("Failed to connect to a server");
-                System.out.println(ch.cause());
+                logger.error("Failed to connect to a server", ch.cause());
             }
         });
 
