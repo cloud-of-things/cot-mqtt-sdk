@@ -65,7 +65,7 @@ public class BootstrapIT {
             context.assertTrue(((String)back).contains("status"));
             async.complete();
         });
-        async.awaitSuccess();
+        async.awaitSuccess(3000);
     }
 
 }

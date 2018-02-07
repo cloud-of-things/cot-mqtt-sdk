@@ -1,5 +1,7 @@
 package de.tarent.telekom.cot.mqtt;
 
+import de.tarent.telekom.cot.mqtt.util.EncryptionHelper;
+import de.tarent.telekom.cot.mqtt.util.Secret;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
@@ -36,19 +38,16 @@ public class BootstrapVerticle extends AbstractVerticle {
         client = MqttClient.create(vertx, options);
 
         client.publishHandler(s -> {
-            try {
                 if (s.topicName().equals(msg.getString("subscribe_topic"))) {
-                    String message = new String(s.payload().getBytes(), "UTF-8");
-                    LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"", message, s.topicName()));
+                    LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"", s.payload().toString("utf-8"), s.topicName()));
+                    EncryptionHelper ech = new EncryptionHelper();
+                    byte[] pass = ech.decrypt(new Secret(msg.getString("message")),s.payload().getBytes());
                     //client.disconnect();
                     JsonObject replyObject = new JsonObject();
                     replyObject.put("status", "registered");
-                    replyObject.put("credentials", message);
+                    replyObject.put("credentials", new String(pass));
                     handle.reply(replyObject);
                 }
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
         });
 
         //connect and publish on /iccid
@@ -68,7 +67,6 @@ public class BootstrapVerticle extends AbstractVerticle {
 
             }
             client.subscribe(msg.getString("subscribe_topic"), MqttQoS.AT_LEAST_ONCE.value());
-
         });
     }
 
