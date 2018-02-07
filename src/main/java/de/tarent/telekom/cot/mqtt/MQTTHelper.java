@@ -72,4 +72,21 @@ public class MQTTHelper extends AbstractVerticle {
         });
     }
 
+    public void publishTopic(String topic, String message, Properties prop, Consumer callback){
+        EventBus eb = vertx.eventBus();
+        JsonObject msg = JsonHelper.from(prop);
+        eb.publish("setConfig", msg);
+        msg.put("sendtopic", topic);
+        msg.put("message", message);
+        eb.send("publish", msg, result ->{
+            if (result.succeeded()){
+                JsonObject regresult = (JsonObject)result.result().body();
+                //ToDo:prepare ReturnMSG
+                callback.accept(regresult.encodePrettily());
+            }else{
+                logger.error("Registration failed - ", result.cause());
+            }
+        });
+    }
+
 }
