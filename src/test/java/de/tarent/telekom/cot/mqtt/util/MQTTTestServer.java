@@ -38,8 +38,7 @@ public class MQTTTestServer extends AbstractVerticle {
                 logger.info(endpoint.auth().toJson().encodePrettily());
             }
             endpoint.publishHandler(message -> {
-                logger.info("Just received message on [" + message.topicName() + "] payload [" +
-                        message.payload() + "] with QoS [" +
+                logger.info("Just received message on [" + message.topicName() + "] with QoS [" +
                         message.qosLevel() + "]");
                 subscriptions.forEach(s ->{
                     if (s.getTopic().equals(message.topicName()) && s.getQos().equals(message.qosLevel())){
