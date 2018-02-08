@@ -2,7 +2,6 @@ package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -12,34 +11,49 @@ import io.vertx.core.logging.LoggerFactory;
 import java.util.Properties;
 import java.util.function.Consumer;
 
+/**
+ * Helper class that starts our {@link io.vertx.core.Verticle}s and offers various methods for registering devices
+ * and publishing messages on topics.
+ */
 public class MQTTHelper extends AbstractVerticle {
 
-    static Logger logger = LoggerFactory.getLogger(MQTTHelper.class);
-    static MQTTHelper helper;
+    private static final Logger logger = LoggerFactory.getLogger(MQTTHelper.class);
+    private static MQTTHelper helper;
 
 
     /**
-        Starts the included verticles
+     * Starts all the included {@link io.vertx.core.Verticle}s ({@link Configuration}, {@link BootstrapVerticle},
+     * {@link MessageVerticle} and {@link MQTTHelper}).
      */
-    private static void initAPI(){
-        Vertx v = Vertx.vertx();
-        Configuration config = new Configuration();
-        v.deployVerticle(config);
-        BootstrapVerticle btvert = new BootstrapVerticle();
-        v.deployVerticle(btvert);
+    private static void initAPI() {
+        final Vertx vertx = Vertx.vertx();
+
+        final Configuration config = new Configuration();
+        vertx.deployVerticle(config);
+
+        final BootstrapVerticle bootstrapVerticle = new BootstrapVerticle();
+        vertx.deployVerticle(bootstrapVerticle);
+
+        final MessageVerticle messageVerticle = new MessageVerticle();
+        vertx.deployVerticle(messageVerticle);
+
         helper = new MQTTHelper();
-        v.deployVerticle(helper);
+        vertx.deployVerticle(helper);
+
         logger.info("Verticles started");
     }
 
     /**
-     * Method returns an MQTTHelper instance and starts the vertx instance if not done before
-     * @return MQTTHelpder instance
+     * Returns the {@link MQTTHelper} instance if it was created and creates a new one, returning that if it was
+     * null.
+     *
+     * @return the {@link MQTTHelper} instance
      */
-    public static MQTTHelper getInstance(){
-        if (helper == null){
+    public static MQTTHelper getInstance() {
+        if (helper == null) {
             initAPI();
         }
+
         return helper;
     }
 
@@ -50,40 +64,53 @@ public class MQTTHelper extends AbstractVerticle {
     }
 
     /**
+     * Registers the given deviceId (iccID) with the given {@link Properties}. The result is then sent back with the
+     * given callback once/if it's retrieved from the server.
      *
-     * @param deviceId -IccId of device
-     * @param prop - {@link Properties} contains connection parameter like Uri, port or credentials
-     * @param callback - Callback function to receive the created credentials
+     * @param deviceId the iccID of the device
+     * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param callback the callback function to receive the created credentials
      */
-    public void registerDevice(String deviceId, Properties prop, Consumer callback){
-        EventBus eb = vertx.eventBus();
-        JsonObject msg = JsonHelper.from(prop);
-        eb.publish("setConfig", msg);
+    public void registerDevice(final String deviceId, final Properties prop, final Consumer callback) {
+        final EventBus eventBus = vertx.eventBus();
+        final JsonObject msg = JsonHelper.from(prop);
+        eventBus.publish("setConfig", msg);
         msg.put("deviceId", deviceId);
-        eb.send("register", msg, result ->{
-            if (result.succeeded()){
-                JsonObject regresult = (JsonObject)result.result().body();
-                eb.publish("setConfig", regresult);
+        eventBus.send("register", msg, result -> {
+            if (result.succeeded()) {
+                final JsonObject registeredResult = (JsonObject) result.result().body();
+                eventBus.publish("setConfig", registeredResult);
                 //ToDo:prepare ReturnMSG
-                callback.accept(regresult.encodePrettily());
-            }else{
+                callback.accept(registeredResult.encodePrettily());
+            } else {
                 logger.error("Registration failed - ", result.cause());
             }
         });
     }
 
-    public void publishTopic(String topic, String message, Properties prop, Consumer callback){
-        EventBus eb = vertx.eventBus();
-        JsonObject msg = JsonHelper.from(prop);
-        eb.publish("setConfig", msg);
-        msg.put("sendtopic", topic);
+    /**
+     * Publishes a given message on the given topic with the given {@link Properties}. The result is then sent back with
+     * the given callback once/if it's retrieved from the server.
+     *
+     * @param topic    the given topic on which to publish the message
+     * @param message  the given message which should be published
+     * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param callback the callback function to receive the created credentials
+     */
+    public void publishMessage(final String topic, final String message, final Properties prop,
+        final Consumer callback) {
+
+        final EventBus eventBus = vertx.eventBus();
+        final JsonObject msg = JsonHelper.from(prop);
+        eventBus.publish("setConfig", msg);
+        msg.put("publishTopic", topic);
         msg.put("message", message);
-        eb.send("publish", msg, result ->{
-            if (result.succeeded()){
-                JsonObject regresult = (JsonObject)result.result().body();
+        eventBus.send("publish", msg, result -> {
+            if (result.succeeded()) {
+                final JsonObject registeredResult = (JsonObject) result.result().body();
                 //ToDo:prepare ReturnMSG
-                callback.accept(regresult.encodePrettily());
-            }else{
+                callback.accept(registeredResult.encodePrettily());
+            } else {
                 logger.error("Registration failed - ", result.cause());
             }
         });

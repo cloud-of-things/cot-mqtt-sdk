@@ -1,12 +1,9 @@
 package de.tarent.telekom.cot.mqtt;
 
 
-import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import de.tarent.telekom.cot.mqtt.util.MQTTTestClient;
 import de.tarent.telekom.cot.mqtt.util.MQTTTestServer;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;
@@ -23,7 +20,7 @@ import java.util.Set;
 @RunWith(VertxUnitRunner.class)
 public class BootstrapIT {
 
-    static Logger logger = LoggerFactory.getLogger(MQTTHelperIT.class);
+    static Logger logger = LoggerFactory.getLogger(BootstrapIT.class);
     MQTTHelper helper;
     Vertx vertx;
 

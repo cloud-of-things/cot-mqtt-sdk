@@ -1,13 +1,11 @@
 package de.tarent.telekom.cot.mqtt.util;
 
-import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.mqtt.MqttServer;
 import io.vertx.mqtt.MqttServerOptions;
-import io.vertx.mqtt.MqttTopicSubscription;
 
 import java.util.ArrayList;
 import java.util.List;
