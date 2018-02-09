@@ -12,9 +12,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
-import org.bouncycastle.util.Arrays;
-
-import java.io.UnsupportedEncodingException;
 
 
 public class BootstrapVerticle extends AbstractVerticle {
@@ -42,16 +39,16 @@ public class BootstrapVerticle extends AbstractVerticle {
                     LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"", s.payload().toString("utf-8"), s.topicName()));
                     EncryptionHelper ech = new EncryptionHelper();
                     byte[] pass = ech.decrypt(new Secret(msg.getString("message")),s.payload().getBytes());
-                    //client.disconnect();
+                    client.disconnect();
                     JsonObject replyObject = new JsonObject();
                     replyObject.put("status", "registered");
                     replyObject.put("credentials", new String(pass));
                     handle.reply(replyObject);
                     //write to config that bootstrap process is done
                     EventBus eb = vertx.eventBus();
-                    JsonObject BootStrapPendingMessage = new JsonObject();
-                    BootStrapPendingMessage.put("bootstrapped", true);
-                    eb.publish("setConfig", BootStrapPendingMessage);
+                    JsonObject BootStrapDoneMessage = new JsonObject();
+                    BootStrapDoneMessage.put("bootstrapped", true);
+                    eb.publish("setConfig", BootStrapDoneMessage);
                 }
         });
 
