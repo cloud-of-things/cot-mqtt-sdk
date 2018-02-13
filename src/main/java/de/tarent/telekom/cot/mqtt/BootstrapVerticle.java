@@ -12,9 +12,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
-import org.bouncycastle.util.Arrays;
-
-import java.io.UnsupportedEncodingException;
 
 
 public class BootstrapVerticle extends AbstractVerticle {
@@ -42,11 +39,16 @@ public class BootstrapVerticle extends AbstractVerticle {
                     LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"", s.payload().toString("utf-8"), s.topicName()));
                     EncryptionHelper ech = new EncryptionHelper();
                     byte[] pass = ech.decrypt(new Secret(msg.getString("message")),s.payload().getBytes());
-                    //client.disconnect();
+                    client.disconnect();
                     JsonObject replyObject = new JsonObject();
                     replyObject.put("status", "registered");
                     replyObject.put("credentials", new String(pass));
                     handle.reply(replyObject);
+                    //write to config that bootstrap process is done
+                    EventBus eventBus = vertx.eventBus();
+                    JsonObject bootStrapDoneMessage = new JsonObject();
+                    bootStrapDoneMessage.put("bootstrapped", true);
+                    eventBus.publish("setConfig", bootStrapDoneMessage);
                 }
         });
 
@@ -62,6 +64,12 @@ public class BootstrapVerticle extends AbstractVerticle {
                     false,
                     false,
                     s -> LOGGER.info("Publish sent to a server"));
+
+                //write to config that bootstrap process has started
+                EventBus eventBus = vertx.eventBus();
+                JsonObject bootStrapPendingMessage = new JsonObject();
+                bootStrapPendingMessage.put("bootstrapped", false);
+                eventBus.publish("setConfig", bootStrapPendingMessage);
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
 
