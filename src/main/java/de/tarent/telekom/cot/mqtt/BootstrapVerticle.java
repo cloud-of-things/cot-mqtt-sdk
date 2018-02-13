@@ -70,11 +70,14 @@ public class BootstrapVerticle extends AbstractVerticle {
                 JsonObject bootStrapPendingMessage = new JsonObject();
                 bootStrapPendingMessage.put("bootstrapped", false);
                 eventBus.publish("setConfig", bootStrapPendingMessage);
+
+                client.subscribe(msg.getString("subscribe_topic"), MqttQoS.AT_LEAST_ONCE.value());
+
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
 
             }
-            client.subscribe(msg.getString("subscribe_topic"), MqttQoS.AT_LEAST_ONCE.value());
+
         });
     }
 
