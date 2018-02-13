@@ -46,9 +46,9 @@ public class BootstrapVerticle extends AbstractVerticle {
                     handle.reply(replyObject);
                     //write to config that bootstrap process is done
                     EventBus eventBus = vertx.eventBus();
-                    JsonObject BootStrapDoneMessage = new JsonObject();
-                    BootStrapDoneMessage.put("bootstrapped", true);
-                    eventBus.publish("setConfig", BootStrapDoneMessage);
+                    JsonObject bootStrapDoneMessage = new JsonObject();
+                    bootStrapDoneMessage.put("bootstrapped", true);
+                    eventBus.publish("setConfig", bootStrapDoneMessage);
                 }
         });
 
@@ -67,9 +67,9 @@ public class BootstrapVerticle extends AbstractVerticle {
 
                 //write to config that bootstrap process has started
                 EventBus eventBus = vertx.eventBus();
-                JsonObject BootStrapPendingMessage = new JsonObject();
-                BootStrapPendingMessage.put("bootstrapped", false);
-                eventBus.publish("setConfig", BootStrapPendingMessage);
+                JsonObject bootStrapPendingMessage = new JsonObject();
+                bootStrapPendingMessage.put("bootstrapped", false);
+                eventBus.publish("setConfig", bootStrapPendingMessage);
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
 
