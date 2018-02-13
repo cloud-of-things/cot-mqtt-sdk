@@ -57,7 +57,7 @@ public class MessageVerticle extends AbstractVerticle {
                         LOGGER.info("Publish sent to a server");
                         JsonObject jso = new JsonObject().put("published", true);
                         handle.reply(jso);
-                    });
+                    }).disconnect();
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
             }
