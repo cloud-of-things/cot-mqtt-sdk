@@ -23,11 +23,11 @@ public class SystemTest {
 	final static String KEY_BOOTSTRAP_PW = "initialPasword";
 	final static String KEY_BROKER_PORT = "brokerPort";
 	final static String KEY_BROKER_URI = "brokerURI";
-	final static String KEY_BOOTSTRAP_PUBLISH_TOPIV = "publish_topic";
+	final static String KEY_BOOTSTRAP_PUBLISH_TOPIC = "publish_topic";
 	final static String KEY_BOOTSTRAP_SUBSCRIBE_TOPIC = "subscribe_topic";
 	final static String KEY_BOOTSTRAP_ECNCRYPTION = "message";
-	final static String KEY_BOOTSTRAP_PUBLISH_PREFIX = "/ss/";
-	final static String KEY_BOOTSTRAP_SUBSCRIBE_PREFIX = "/sr/";
+	final static String BOOTSTRAP_PUBLISH_PREFIX = "/ss/";
+	final static String BOOTSTRAP_SUBSCRIBE_PREFIX = "/sr/";
 	
 	
 	MQTTHelper helper;
@@ -42,5 +42,12 @@ public class SystemTest {
 	@Test
 	public void BootstrapSystemTest() {
 		Properties prop = new Properties();
+		prop.put(KEY_BROKER_URI, MQTT_BROKER_HOST);
+		prop.put(KEY_BROKER_PORT, MQTT_BROKER_PORT);
+		prop.put(KEY_BOOTSTRAP_ECNCRYPTION, BOOTSTRAP_KEY);
+		prop.put(KEY_BOOTSTRAP_USER, BOOTSTRAP_USER);
+		prop.put(KEY_BOOTSTRAP_PW, BOOTSTRAP_PASSWORD);
+		prop.put(KEY_BOOTSTRAP_SUBSCRIBE_TOPIC, BOOTSTRAP_SUBSCRIBE_PREFIX+BOOTSTRAP_DEVICE);
+		prop.put(KEY_BOOTSTRAP_PUBLISH_TOPIC, BOOTSTRAP_PUBLISH_PREFIX+BOOTSTRAP_DEVICE);
 	}
 }
