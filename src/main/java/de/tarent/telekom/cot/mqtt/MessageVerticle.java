@@ -21,11 +21,15 @@ public class MessageVerticle extends AbstractVerticle {
     private MqttClient client;
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         final EventBus eventBus = vertx.eventBus();
 
         eventBus.consumer("publish", msg -> {
             publishMessage((JsonObject) msg.body(), msg);
+        });
+
+        eventBus.consumer("subscribe", msg -> {
+            subscribeToTopic((JsonObject) msg.body(), msg);
         });
     }
 
@@ -34,7 +38,7 @@ public class MessageVerticle extends AbstractVerticle {
      *
      * @param msg the {@link JsonObject} that contains the necessary information to publish a message
      */
-    private void publishMessage(final JsonObject msg, Message handle) {
+    private void publishMessage(final JsonObject msg, final Message handle) {
 
         final MqttClientOptions options = new MqttClientOptions()
             .setPassword(msg.getString("password"))
@@ -56,6 +60,31 @@ public class MessageVerticle extends AbstractVerticle {
                     s -> {
                         LOGGER.info("Publish sent to a server");
                         JsonObject jso = new JsonObject().put("published", true);
+                        handle.reply(jso);
+                    }).disconnect();
+            } else {
+                LOGGER.error("Failed to connect to a server", ch.cause());
+            }
+        });
+    }
+
+    private void subscribeToTopic(final JsonObject msg, final Message handle) {
+        final MqttClientOptions options = new MqttClientOptions()
+            .setPassword(msg.getString("password"))
+            .setUsername(msg.getString("user"))
+            .setAutoKeepAlive(true);
+
+        //connect and subscribe on /iccid
+        final int port = Integer.parseInt(msg.getString("brokerPort"));
+
+        client = MqttClient.create(vertx, options);
+        client.connect(port, msg.getString("brokerURI"), ch -> {
+            if (ch.succeeded()) {
+                LOGGER.info("Connected to a server");
+                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
+                    s -> {
+                        LOGGER.info("Subscribe call sent to a server");
+                        JsonObject jso = new JsonObject().put("subscribed", true);
                         handle.reply(jso);
                     }).disconnect();
             } else {
