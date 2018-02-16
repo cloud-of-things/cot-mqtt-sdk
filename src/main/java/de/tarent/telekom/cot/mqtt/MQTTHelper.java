@@ -124,17 +124,12 @@ public class MQTTHelper extends AbstractVerticle {
      * @param callback the callback function to receive the created credentials
      */
     public void subscribeToTopic(final String topic, final Properties prop, final Consumer callback) {
-
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("subscribeTopic", topic);
-        eventBus.send("subscribe", msg, result -> {
-            if (result.succeeded()) {
-                final JsonObject registeredResult = (JsonObject) result.result().body();
-                callback.accept(registeredResult.encodePrettily());
-            } else {
-                logger.error("Subscribing to topic failed - ", result.cause());
-            }
+        eventBus.consumer("received", h -> {
+            final JsonObject registeredResult = (JsonObject) h.body();
+            callback.accept(registeredResult.encodePrettily());
         });
     }
 
