@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
 import java.util.Properties;
 import java.util.Set;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
@@ -48,16 +49,36 @@ public class MessageIT {
     @Test
     public void testPublishMessage(final TestContext context) {
         Properties prop = new Properties();
-        prop.setProperty("user", "publishMessage");
+        prop.setProperty("user", "publishUser");
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "1883");
-        final String topic = "/ms/testDevice";
+        final String topic = "/mr/testDevice";
         final String message = "test1234567890ab";
         final Async async = context.async();
         helper.publishMessage(topic, message, prop, back -> {
             logger.info("Back:" + back);
             assertTrue(back.toString().contains("published"));
+            assertFalse(back.toString().contains("subscribed"));
+            async.complete();
+        });
+
+        async.awaitSuccess(3000);
+    }
+
+    @Test
+    public void testSubscribeToTopic(final TestContext context) {
+        Properties prop = new Properties();
+        prop.setProperty("user", "subscribeUser");
+        prop.setProperty("password", "somePassword");
+        prop.setProperty("brokerURI", "localhost");
+        prop.setProperty("brokerPort", "1883");
+        final String topic = "/ms/testDevice";
+        final Async async = context.async();
+        helper.subscribeToTopic(topic, prop, back -> {
+            logger.info("Back:" + back);
+            assertTrue(back.toString().contains("subscribed"));
+            assertFalse(back.toString().contains("published"));
             async.complete();
         });
 

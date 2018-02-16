@@ -111,7 +111,30 @@ public class MQTTHelper extends AbstractVerticle {
                 //ToDo:prepare ReturnMSG
                 callback.accept(registeredResult.encodePrettily());
             } else {
-                logger.error("Registration failed - ", result.cause());
+                logger.error("Sending message failed - ", result.cause());
+            }
+        });
+    }
+
+    /**
+     * Subscribes to a given topic with the given {@link Properties}.
+     *
+     * @param topic    the given topic on which to publish the message
+     * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param callback the callback function to receive the created credentials
+     */
+    public void subscribeToTopic(final String topic, final Properties prop, final Consumer callback) {
+
+        final EventBus eventBus = vertx.eventBus();
+        final JsonObject msg = JsonHelper.from(prop);
+        eventBus.publish("setConfig", msg);
+        msg.put("subscribeTopic", topic);
+        eventBus.send("subscribe", msg, result -> {
+            if (result.succeeded()) {
+                final JsonObject registeredResult = (JsonObject) result.result().body();
+                callback.accept(registeredResult.encodePrettily());
+            } else {
+                logger.error("Subscribing to topic failed - ", result.cause());
             }
         });
     }
