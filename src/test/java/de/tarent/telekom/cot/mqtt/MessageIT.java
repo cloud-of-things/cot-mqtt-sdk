@@ -78,8 +78,9 @@ public class MessageIT {
         helper.subscribeToTopic(topic, prop, back -> {
             logger.info("Back:" + back);
             assertTrue(back.toString().contains("subscribed"));
-            assertFalse(back.toString().contains("published"));
             async.complete();
+        }, callback ->{
+        		logger.info("message received");//receive message not yet realized in Helper classes, so not tested yet
         });
 
         async.awaitSuccess(3000);

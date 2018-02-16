@@ -121,16 +121,25 @@ public class MQTTHelper extends AbstractVerticle {
      *
      * @param topic    the given topic on which to publish the message
      * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param subscriptionCallBack the callback to check if subscription is successful (needed for integration tests)
      * @param callback the callback function to receive the created credentials
      */
-    public void subscribeToTopic(final String topic, final Properties prop, final Consumer callback) {
+    public void subscribeToTopic(final String topic, final Properties prop, final Consumer subscriptionCallBack, final Consumer callback) {
         final EventBus eventBus = vertx.eventBus();
-        final JsonObject msg = JsonHelper.from(prop);
-        msg.put("subscribeTopic", topic);
         eventBus.consumer("received", h -> {
             final JsonObject registeredResult = (JsonObject) h.body();
             callback.accept(registeredResult.encodePrettily());
         });
+        final JsonObject msg = JsonHelper.from(prop);
+        msg.put("subscribeTopic", topic);
+        eventBus.send("subscribe", msg, messageHandler ->{
+        		if (messageHandler.succeeded()) {
+        			subscriptionCallBack.accept(messageHandler.result().body());
+        		}else {
+        			subscriptionCallBack.accept(messageHandler.cause().getMessage());
+        		}
+        });
+       
     }
 
 }
