@@ -18,10 +18,10 @@ import java.util.function.Consumer;
 public class MQTTHelper extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(MQTTHelper.class);
-    private static final String REGISTER_SUBSCRIBE_PREFIX = "/sr/";
-    private static final String REGISTER_PUBLISH_PREFIX = "/ss/";
-    private static final String MESSAGE_SUBSCRIBE_PREFIX = "/mr/";
-    private static final String MESSAGE_PUBLISH_PREFIX = "/ms/";
+    private static final String REGISTER_SUBSCRIBE_PREFIX = "sr/";
+    private static final String REGISTER_PUBLISH_PREFIX = "ss/";
+    private static final String MESSAGE_SUBSCRIBE_PREFIX = "mr/";
+    private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
     private static MQTTHelper helper;
 
 
