@@ -25,7 +25,7 @@ public class BootstrapIT {
     Vertx vertx;
 
     @Before
-    public void before(){
+    public void before() {
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
         MQTTTestServer server = new MQTTTestServer();
@@ -35,31 +35,29 @@ public class BootstrapIT {
     }
 
     @After
-    public void after(){
+    public void after() {
         Set<String> list = vertx.deploymentIDs();
-        if (list!= null && list.size()>0) {
+        if (list != null && list.size() > 0) {
             list.forEach(id -> {
-                logger.info("to undeploy:"+id);
+                logger.info("to undeploy:" + id);
                 vertx.undeploy(id);
             });
         }
     }
 
     @Test
-    public void testDeviceRegister(TestContext context){
+    public void testDeviceRegister(TestContext context) {
         Properties prop = new Properties();
-        prop.setProperty("initialUser","devicebootstrap");
-        prop.setProperty("initialPassword","Fhdt1bb1f" );
-        prop.setProperty("brokerURI","localhost" );
-        prop.setProperty("brokerPort","1883" );
-        prop.setProperty("publish_topic", "/ss/testDevice");
-        prop.setProperty("subscribe_topic", "/sr/testDevice");
+        prop.setProperty("initialUser", "devicebootstrap");
+        prop.setProperty("initialPassword", "Fhdt1bb1f");
+        prop.setProperty("brokerURI", "localhost");
+        prop.setProperty("brokerPort", "1883");
         prop.setProperty("message", "test1234567890ab");
         String devId = "testDevice";
         Async async = context.async();
-        helper.registerDevice(devId, prop,back ->{
-            logger.info("Back:"+back);
-            context.assertTrue(((String)back).contains("status"));
+        helper.registerDevice(devId, prop, back -> {
+            logger.info("Back:" + back);
+            context.assertTrue(((String) back).contains("status"));
             async.complete();
         });
         async.awaitSuccess(3000);
