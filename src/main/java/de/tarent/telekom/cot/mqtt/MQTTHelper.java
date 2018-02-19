@@ -18,6 +18,10 @@ import java.util.function.Consumer;
 public class MQTTHelper extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(MQTTHelper.class);
+    private static final String REGISTER_SUBSCRIBE_PREFIX = "sr/";
+    private static final String REGISTER_PUBLISH_PREFIX = "ss/";
+    private static final String MESSAGE_SUBSCRIBE_PREFIX = "mr/";
+    private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
     private static MQTTHelper helper;
 
 
@@ -75,7 +79,8 @@ public class MQTTHelper extends AbstractVerticle {
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
         eventBus.publish("setConfig", msg);
-        msg.put("deviceId", deviceId);
+        msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
+        msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
         eventBus.send("register", msg, result -> {
             if (result.succeeded()) {
                 final JsonObject registeredResult = (JsonObject) result.result().body();
@@ -92,18 +97,18 @@ public class MQTTHelper extends AbstractVerticle {
      * Publishes a given message on the given topic with the given {@link Properties}. The result is then sent back with
      * the given callback once/if it's retrieved from the server.
      *
-     * @param topic    the given topic on which to publish the message
+     * @param deviceId the given device with which to publish the message
      * @param message  the given message which should be published
      * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
      * @param callback the callback function to receive the created credentials
      */
-    public void publishMessage(final String topic, final String message, final Properties prop,
+    public void publishMessage(final String deviceId, final String message, final Properties prop,
         final Consumer callback) {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
         eventBus.publish("setConfig", msg);
-        msg.put("publishTopic", topic);
+        msg.put("publishTopic", MESSAGE_PUBLISH_PREFIX + deviceId);
         msg.put("message", message);
         eventBus.send("publish", msg, result -> {
             if (result.succeeded()) {
@@ -119,27 +124,26 @@ public class MQTTHelper extends AbstractVerticle {
     /**
      * Subscribes to a given topic with the given {@link Properties}.
      *
-     * @param topic    the given topic on which to publish the message
-     * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
-     * @param subscriptionCallBack the callback to check if subscription is successful (needed for integration tests)
-     * @param callback the callback function to receive the created credentials
+     * @param deviceId             the given device with which to subscribe to a topic
+     * @param prop                 the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param subscriptionCallback the callback to check if subscription is successful (needed for integration tests)
+     * @param callback             the callback function to receive the created credentials
      */
-    public void subscribeToTopic(final String topic, final Properties prop, final Consumer subscriptionCallBack, final Consumer callback) {
+    public void subscribeToTopic(final String deviceId, final Properties prop, final Consumer subscriptionCallback,
+        final Consumer callback) {
         final EventBus eventBus = vertx.eventBus();
         eventBus.consumer("received", h -> {
             final JsonObject registeredResult = (JsonObject) h.body();
             callback.accept(registeredResult.encodePrettily());
         });
         final JsonObject msg = JsonHelper.from(prop);
-        msg.put("subscribeTopic", topic);
-        eventBus.send("subscribe", msg, messageHandler ->{
-        		if (messageHandler.succeeded()) {
-        			subscriptionCallBack.accept(messageHandler.result().body());
-        		}else {
-        			subscriptionCallBack.accept(messageHandler.cause().getMessage());
-        		}
+        msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+        eventBus.send("subscribe", msg, messageHandler -> {
+            if (messageHandler.succeeded()) {
+                subscriptionCallback.accept(messageHandler.result().body());
+            } else {
+                subscriptionCallback.accept(messageHandler.cause().getMessage());
+            }
         });
-       
     }
-
 }

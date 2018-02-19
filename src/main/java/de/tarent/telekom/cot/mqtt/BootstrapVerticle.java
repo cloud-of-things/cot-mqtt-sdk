@@ -35,7 +35,7 @@ public class BootstrapVerticle extends AbstractVerticle {
         client = MqttClient.create(vertx, options);
 
         client.publishHandler(s -> {
-                if (s.topicName().equals(msg.getString("subscribe_topic"))) {
+                if (s.topicName().equals(msg.getString("subscribeTopic"))) {
                     LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"", s.payload().toString("utf-8"), s.topicName()));
                     EncryptionHelper ech = new EncryptionHelper();
                     byte[] pass = ech.decrypt(new Secret(msg.getString("message")),s.payload().getBytes());
@@ -58,7 +58,7 @@ public class BootstrapVerticle extends AbstractVerticle {
             if (ch.succeeded()) {
                 System.out.println("Connected to a server");
                 client.publish(
-                    msg.getValue("publish_topic").toString(),
+                    msg.getValue("publishTopic").toString(),
                     Buffer.buffer(msg.getValue("message").toString()),
                     MqttQoS.AT_LEAST_ONCE,
                     false,
@@ -71,7 +71,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                 bootStrapPendingMessage.put("bootstrapped", false);
                 eventBus.publish("setConfig", bootStrapPendingMessage);
 
-                client.subscribe(msg.getString("subscribe_topic"), MqttQoS.AT_LEAST_ONCE.value());
+                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_LEAST_ONCE.value());
 
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
