@@ -5,6 +5,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * The class that prepares the input key and the data to be encrypted to be
@@ -166,4 +167,18 @@ public class EncryptionHelper {
     private int getPaddingLength(final byte[] decryptedData) {
         return (int) decryptedData[decryptedData.length - 1];
     }
+
+    public static String generatePassword() {
+        String saltchars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuffer salt = new StringBuffer();
+        Random rnd = new Random();
+        while (salt.length() < 16) {
+            int index = rnd.nextInt(saltchars.length());
+            salt.append(saltchars.charAt(index));
+        }
+
+        return salt.toString();
+
+    }
+
 }

@@ -20,9 +20,11 @@ public class BootstrapVerticle extends AbstractVerticle {
 
     private MqttClient client;
 
+    private EventBus eb;
+
     @Override
     public void start() throws Exception {
-        EventBus eb = vertx.eventBus();
+        eb = vertx.eventBus();
 
         eb.consumer("register", msg -> {
             registerDevice((JsonObject) msg.body(), msg);
@@ -30,6 +32,21 @@ public class BootstrapVerticle extends AbstractVerticle {
     }
 
     void registerDevice(JsonObject msg, Message handle) {
+
+        JsonObject config = new JsonObject();
+
+        eb.send("config", "key:key", result -> {
+
+            String secretKey;
+
+            if (result.succeeded()) {
+                config.put(result.result().body().toString());
+            } else {
+                secretKey = EncryptionHelper.generatePassword();
+            }
+
+        });
+
         LOGGER.info(msg.encodePrettily());
         MqttClientOptions options = new MqttClientOptions().setPassword(msg.getString("initialPassword")).setUsername(msg.getString("initialUser")).setAutoKeepAlive(true);
         client = MqttClient.create(vertx, options);
@@ -45,10 +62,9 @@ public class BootstrapVerticle extends AbstractVerticle {
                     replyObject.put("credentials", new String(pass));
                     handle.reply(replyObject);
                     //write to config that bootstrap process is done
-                    EventBus eventBus = vertx.eventBus();
                     JsonObject bootStrapDoneMessage = new JsonObject();
                     bootStrapDoneMessage.put("bootstrapped", true);
-                    eventBus.publish("setConfig", bootStrapDoneMessage);
+                    eb.publish("setConfig", bootStrapDoneMessage);
                 }
         });
 
@@ -66,10 +82,12 @@ public class BootstrapVerticle extends AbstractVerticle {
                     s -> LOGGER.info("Publish sent to a server"));
 
                 //write to config that bootstrap process has started
-                EventBus eventBus = vertx.eventBus();
                 JsonObject bootStrapPendingMessage = new JsonObject();
                 bootStrapPendingMessage.put("bootstrapped", false);
-                eventBus.publish("setConfig", bootStrapPendingMessage);
+                JsonObject sentSecret= new JsonObject();
+                sentSecret.put("secret", secret);
+                eb.publish("setConfig", bootStrapPendingMessage);
+                eb.publish("setConfig", sentSecret);
 
                 client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_LEAST_ONCE.value());
 
