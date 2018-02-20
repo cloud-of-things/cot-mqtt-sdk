@@ -134,7 +134,7 @@ public class MQTTHelper extends AbstractVerticle {
         final EventBus eventBus = vertx.eventBus();
         eventBus.consumer("received", h -> {
             final JsonObject registeredResult = (JsonObject) h.body();
-            callback.accept(registeredResult.encodePrettily());
+            callback.accept(registeredResult.getString("received"));
         });
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);

@@ -23,7 +23,7 @@ public class MQTTTestServer extends AbstractVerticle {
     public void start() throws Exception {
 
         MqttServerOptions options = new MqttServerOptions()
-                .setPort(1883)
+                .setPort(11883)
                 .setHost("0.0.0.0");
 
         MqttServer server = MqttServer.create(vertx, options);
@@ -39,8 +39,8 @@ public class MQTTTestServer extends AbstractVerticle {
                 logger.info("Just received message on [" + message.topicName() + "] with QoS [" +
                         message.qosLevel() + "]");
                 subscriptions.forEach(s ->{
-                    if (s.getTopic().equals(message.topicName()) && s.getQos().equals(message.qosLevel())){
-                        s.getEndpoint().publish(message.topicName(),message.payload(), message.qosLevel(), false, false);
+                    if (s.getTopic().equals(message.topicName())){
+                        s.getEndpoint().publish(message.topicName(),message.payload(), s.getQos(), false, false);
                     }
                 });
             });
