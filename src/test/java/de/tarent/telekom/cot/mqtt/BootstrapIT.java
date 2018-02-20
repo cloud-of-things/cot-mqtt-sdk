@@ -55,6 +55,25 @@ public class BootstrapIT {
         prop.setProperty("message", "test1234567890ab");
         String devId = "testDevice";
         Async async = context.async();
+        helper.registerDevice(devId, prop,back ->{
+            logger.info("Back:"+back);
+            context.assertTrue(((String)back).contains("status"));
+            async.complete();
+        });
+        async.awaitSuccess(3000);
+    }
+
+    @Test
+    public void testDeviceWithExistingSecret(TestContext context){
+        Properties prop = new Properties();
+        prop.setProperty("initialUser", "devicebootstrap");
+        prop.setProperty("initialPassword", "Fhdt1bb1f");
+        prop.setProperty("brokerURI", "localhost");
+        prop.setProperty("brokerPort", "11883");
+        prop.setProperty("message", "test1234567890ab");
+        prop.setProperty("secret", "1234567890abcdef");
+        String devId = "testDevice";
+        Async async = context.async();
         helper.registerDevice(devId, prop, back -> {
             logger.info("Back:" + back);
             context.assertTrue(((String) back).contains("status"));

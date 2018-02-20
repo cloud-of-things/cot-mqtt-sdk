@@ -169,7 +169,7 @@ public class EncryptionHelper {
     }
 
     public static String generatePassword() {
-        String saltchars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        String saltchars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         StringBuffer salt = new StringBuffer();
         Random rnd = new Random();
         while (salt.length() < 16) {
