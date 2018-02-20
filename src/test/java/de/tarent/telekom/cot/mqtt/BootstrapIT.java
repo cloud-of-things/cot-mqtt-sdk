@@ -51,7 +51,7 @@ public class BootstrapIT {
         prop.setProperty("initialUser", "devicebootstrap");
         prop.setProperty("initialPassword", "Fhdt1bb1f");
         prop.setProperty("brokerURI", "localhost");
-        prop.setProperty("brokerPort", "1883");
+        prop.setProperty("brokerPort", "11883");
         prop.setProperty("message", "test1234567890ab");
         String devId = "testDevice";
         Async async = context.async();

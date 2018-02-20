@@ -1,6 +1,7 @@
 package de.tarent.telekom.cot.mqtt;
 
 
+import de.tarent.telekom.cot.mqtt.util.MQTTTestClient;
 import de.tarent.telekom.cot.mqtt.util.MQTTTestServer;
 import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
@@ -16,6 +17,7 @@ import org.junit.runner.RunWith;
 import java.util.Properties;
 import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
@@ -24,6 +26,7 @@ public class MessageIT {
     static Logger logger = LoggerFactory.getLogger(MessageIT.class);
     MQTTHelper helper;
     MQTTTestServer server;
+    MQTTTestClient client;
     Vertx vertx;
 
     @Before
@@ -32,6 +35,8 @@ public class MessageIT {
         vertx = helper.getVertx();
         server = new MQTTTestServer();
         vertx.deployVerticle(server);
+        client = new MQTTTestClient();
+        vertx.deployVerticle(client);
     }
 
     @After
@@ -51,7 +56,7 @@ public class MessageIT {
         prop.setProperty("user", "publishUser");
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
-        prop.setProperty("brokerPort", "1883");
+        prop.setProperty("brokerPort", "11883");
         final String deviceId = "testDevice";
         // Test string taken form device-simulator: SmartRestMessageBuilderTest.testMeasurementPayload();
         final String message = "15,sim770\n" + "300,name,T,89,unit,time,source,type";
@@ -71,7 +76,7 @@ public class MessageIT {
         prop.setProperty("user", "subscribeUser");
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
-        prop.setProperty("brokerPort", "1883");
+        prop.setProperty("brokerPort", "11883");
         final String deviceId = "testDevice";
         final Async async = context.async();
         helper.subscribeToTopic(deviceId, prop, back -> {
@@ -80,6 +85,8 @@ public class MessageIT {
             async.complete();
         }, callback -> {
             logger.info("message received");//receive message not yet realized in Helper classes, so not tested yet
+            assertEquals("15,sim770\\n410,OPID1,SUCCESSFUL,result of the successful command,ln -s",callback.toString());
+            async.complete();
         });
 
         async.awaitSuccess(3000);

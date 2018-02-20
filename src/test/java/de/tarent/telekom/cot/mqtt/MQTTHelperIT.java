@@ -32,7 +32,7 @@ public class MQTTHelperIT {
         prop.setProperty("bootstrap.initialuser","devicebootstrap");
         prop.setProperty("bootstrap.initialpassword","Fhdt1bb1f" );
         prop.setProperty("bootstrap.brokerURI","localhost" );
-        prop.setProperty("bootstrap.brokerPort","1883" );
+        prop.setProperty("bootstrap.brokerPort","11883" );
         JsonObject conf = JsonHelper.from(prop);
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
@@ -65,7 +65,7 @@ public class MQTTHelperIT {
             if (r.succeeded()){
                 JsonObject prop = (JsonObject)r.result().body();
                 logger.info("prop"+prop.encodePrettily());
-                context.assertEquals("1883",prop.getString("bootstrap.brokerPort"));
+                context.assertEquals("11883",prop.getString("bootstrap.brokerPort"));
             }else{
                 logger.info("Error");
                 context.fail(r.cause());
