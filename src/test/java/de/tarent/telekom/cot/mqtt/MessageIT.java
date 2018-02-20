@@ -53,7 +53,8 @@ public class MessageIT {
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "1883");
         final String deviceId = "testDevice";
-        final String message = "test1234567890ab";
+        // Test string taken form device-simulator: SmartRestMessageBuilderTest.testMeasurementPayload();
+        final String message = "15,sim770\n" + "300,name,T,89,unit,time,source,type";
         final Async async = context.async();
         helper.publishMessage(deviceId, message, prop, back -> {
             logger.info("Back:" + back);
