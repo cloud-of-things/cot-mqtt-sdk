@@ -109,6 +109,8 @@ public class BootstrapVerticle extends AbstractVerticle {
         client.connect(port, msg.getString("brokerURI"), ch -> {
             if (ch.succeeded()) {
                 System.out.println("Connected to a server");
+                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_LEAST_ONCE.value());
+
                 client.publish(
                     msg.getValue("publishTopic").toString(),
                     Buffer.buffer(secret),
@@ -118,14 +120,11 @@ public class BootstrapVerticle extends AbstractVerticle {
                     s -> LOGGER.info("Publish sent to a server"));
 
                 //write to config that bootstrap process has started
-                JsonObject bootStrapPendingMessage = new JsonObject();
-                bootStrapPendingMessage.put("bootstrapped", false);
-                JsonObject sentSecret = new JsonObject();
-                sentSecret.put("secret", secret);
-                eb.publish("setConfig", bootStrapPendingMessage);
-                eb.publish("setConfig", sentSecret);
+                JsonObject configParams = new JsonObject();
+                configParams.put("bootstrapped", false);
+                configParams.put("secret", secret);
+                eb.publish("setConfig", configParams);
 
-                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_LEAST_ONCE.value());
 
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
