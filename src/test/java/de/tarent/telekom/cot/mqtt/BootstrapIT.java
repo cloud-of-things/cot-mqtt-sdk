@@ -25,22 +25,23 @@ public class BootstrapIT {
     Vertx vertx;
 
     @Before
-    public void before() {
+    public void before(final TestContext context) {
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
         MQTTTestServer server = new MQTTTestServer();
-        vertx.deployVerticle(server);
+        vertx.deployVerticle(server, context.asyncAssertSuccess(s -> System.out.println("Server deployed: " + s)));
+
         MQTTTestClient client = new MQTTTestClient();
-        vertx.deployVerticle(client);
+        vertx.deployVerticle(client, context.asyncAssertSuccess(s -> System.out.println("Client deployed: " + s)));
     }
 
     @After
-    public void after() {
+    public void after(final TestContext context) {
         Set<String> list = vertx.deploymentIDs();
         if (list != null && list.size() > 0) {
             list.forEach(id -> {
                 logger.info("to undeploy:" + id);
-                vertx.undeploy(id);
+                vertx.undeploy(id, context.asyncAssertSuccess(s -> System.out.println("Verticle undeployed: " + s)));
             });
         }
     }

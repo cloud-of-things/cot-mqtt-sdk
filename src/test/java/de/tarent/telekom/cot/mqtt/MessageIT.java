@@ -30,22 +30,23 @@ public class MessageIT {
     Vertx vertx;
 
     @Before
-    public void before() {
+    public void before(final TestContext context) {
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
         server = new MQTTTestServer();
-        vertx.deployVerticle(server);
+        vertx.deployVerticle(server, context.asyncAssertSuccess(s -> System.out.println("Server deployed: " + s)));
+
         client = new MQTTTestClient();
-        vertx.deployVerticle(client);
+        vertx.deployVerticle(client, context.asyncAssertSuccess(s -> System.out.println("Client deployed: " + s)));
     }
 
     @After
-    public void after() {
-        Set<String> list = vertx.deploymentIDs();
+    public void after(final TestContext context) {
+        final Set<String> list = vertx.deploymentIDs();
         if (list != null && list.size() > 0) {
             list.forEach(id -> {
                 logger.info("to undeploy:" + id);
-                vertx.undeploy(id);
+                vertx.undeploy(id, context.asyncAssertSuccess(s -> System.out.println("Verticle undeployed: " + s)));
             });
         }
     }
@@ -85,7 +86,8 @@ public class MessageIT {
             async.complete();
         }, callback -> {
             logger.info("message received");//receive message not yet realized in Helper classes, so not tested yet
-            assertEquals("15,sim770\\n410,OPID1,SUCCESSFUL,result of the successful command,ln -s",callback.toString());
+            assertEquals("15,sim770\\n410,OPID1,SUCCESSFUL,result of the successful command,ln -s",
+                callback.toString());
             async.complete();
         });
 
