@@ -58,6 +58,7 @@ public class Configuration extends AbstractVerticle {
                     msg.reply(getConfig(o));
                 });
                 eb.consumer("setConfig", h -> {
+                    logger.info("in setConfig");
                     JsonObject msg = (JsonObject) h.body();
                     setConfig(msg);
                     h.reply(msg.put("saved", true));
@@ -91,7 +92,11 @@ public class Configuration extends AbstractVerticle {
         conf.mergeIn(obj);
         FileSystem fs = vertx.fileSystem();
         fs.writeFile(sysConf.getString("configPath"), Buffer.buffer(conf.encode()), fh -> {
-            logger.info("configuration saved");
+            if (fh.succeeded()) {
+                logger.info("configuration saved");
+            }else{
+                logger.error("saving config failed", fh.cause());
+            }
         });
     }
 

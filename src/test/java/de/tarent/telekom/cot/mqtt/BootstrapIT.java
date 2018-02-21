@@ -4,6 +4,8 @@ package de.tarent.telekom.cot.mqtt;
 import de.tarent.telekom.cot.mqtt.util.MQTTTestClient;
 import de.tarent.telekom.cot.mqtt.util.MQTTTestServer;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;

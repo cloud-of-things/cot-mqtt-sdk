@@ -2,6 +2,8 @@ package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -24,28 +26,54 @@ public class MQTTHelper extends AbstractVerticle {
     private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
     private static MQTTHelper helper;
 
+    @Override
+    public void start(Future<Void> startFuture){
+
+        Future<Void> configFuture = Future.future();
+        Future<Void> bootstrapFuture = Future.future();
+        Future<Void> messageFuture = Future.future();
+        final Configuration config = new Configuration();
+        vertx.deployVerticle(config, ch -> {
+            if (ch.succeeded()) {
+                configFuture.complete();
+            }
+        });
+
+        final BootstrapVerticle bootstrapVerticle = new BootstrapVerticle();
+        vertx.deployVerticle(bootstrapVerticle, ch -> {
+            if (ch.succeeded()) {
+                bootstrapFuture.complete();
+            }
+        });
+
+        final MessageVerticle messageVerticle = new MessageVerticle();
+        vertx.deployVerticle(messageVerticle, ch -> {
+            if (ch.succeeded()) {
+                messageFuture.complete();
+            }
+        });
+
+        CompositeFuture.all(configFuture, bootstrapFuture, messageFuture).setHandler(cf ->{
+            if (cf.succeeded()){
+                logger.info("Verticles started");
+                startFuture.complete();
+            }
+        });
+    }
 
     /**
      * Starts all the included {@link io.vertx.core.Verticle}s ({@link Configuration}, {@link BootstrapVerticle},
      * {@link MessageVerticle} and {@link MQTTHelper}).
      */
     private static void initAPI() {
-        final Vertx vertx = Vertx.vertx();
 
-        final Configuration config = new Configuration();
-        vertx.deployVerticle(config);
-
-        final BootstrapVerticle bootstrapVerticle = new BootstrapVerticle();
-        vertx.deployVerticle(bootstrapVerticle);
-
-        final MessageVerticle messageVerticle = new MessageVerticle();
-        vertx.deployVerticle(messageVerticle);
-
+        Vertx v = Vertx.vertx();
         helper = new MQTTHelper();
-        vertx.deployVerticle(helper);
+        v.deployVerticle(helper);
 
-        logger.info("Verticles started");
     }
+
+
 
     /**
      * Returns the {@link MQTTHelper} instance if it was created and creates a new one, returning that if it was
@@ -80,14 +108,20 @@ public class MQTTHelper extends AbstractVerticle {
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
         msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
-        eventBus.publish("setConfig", msg);
+        eventBus.send("setConfig", msg, r -> {
+            if (r.succeeded()){
+
+            }else{
+                logger.error("error during readConfig", r.cause());
+            }
+        });
 
         eventBus.consumer("bootstrapComplete", result -> {
-                    final JsonObject registeredResult = (JsonObject) result.body();
-                    eventBus.publish("setConfig", registeredResult);
-                    //ToDo:prepare ReturnMSG
-                    callback.accept(registeredResult.encodePrettily());
-            });
+            final JsonObject registeredResult = (JsonObject) result.body();
+            eventBus.publish("setConfig", registeredResult);
+            //ToDo:prepare ReturnMSG
+            callback.accept(registeredResult.encodePrettily());
+        });
 
         eventBus.publish("register", msg);
     }
@@ -102,7 +136,7 @@ public class MQTTHelper extends AbstractVerticle {
      * @param callback the callback function to receive the created credentials
      */
     public void publishMessage(final String deviceId, final String message, final Properties prop,
-        final Consumer callback) {
+                               final Consumer callback) {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
@@ -129,7 +163,7 @@ public class MQTTHelper extends AbstractVerticle {
      * @param callback             the callback function to receive the created credentials
      */
     public void subscribeToTopic(final String deviceId, final Properties prop, final Consumer subscriptionCallback,
-        final Consumer callback) {
+                                 final Consumer callback) {
         final EventBus eventBus = vertx.eventBus();
         eventBus.consumer("received", h -> {
             final JsonObject registeredResult = (JsonObject) h.body();
