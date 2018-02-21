@@ -1,13 +1,10 @@
 package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.EncryptionHelper;
-import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import de.tarent.telekom.cot.mqtt.util.Secret;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
@@ -16,8 +13,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
-
-import java.util.Arrays;
 
 
 public class BootstrapVerticle extends AbstractVerticle {
@@ -40,6 +35,7 @@ public class BootstrapVerticle extends AbstractVerticle {
     void registerDevice(JsonObject msg, Message handle) {
 
         Future <String> secret = getConfig("secret");
+        Future <String> bootstrapPending = getConfig("bootstrapped");
 
         LOGGER.info(msg.encodePrettily());
         MqttClientOptions options = new MqttClientOptions().setPassword(msg.getString("initialPassword")).setUsername(msg.getString("initialUser")).setAutoKeepAlive(true);
@@ -47,10 +43,24 @@ public class BootstrapVerticle extends AbstractVerticle {
 
         secret.setHandler(s -> {
 
-            if(s.succeeded()) {
+            if (s.succeeded()) {
                 setPublishHandler(msg, handle, s.result());
 
-                connectAndPublish(msg, s.result());
+                bootstrapPending.setHandler(p -> {
+                    if (p.succeeded() && !(p.result().equals("false"))) {
+                        LOGGER.info("no bootstrapping request sent. connect and publish.");
+                        connectAndPublish(msg, s.result());
+                    } else {
+                        LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
+                        int port = Integer.parseInt(msg.getString("brokerPort"));
+                        client.connect(port, msg.getString("brokerURI"), ch -> {
+                            if (ch.succeeded()) {
+                                System.out.println("Connected to a server");
+                                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_LEAST_ONCE.value());
+                            }
+                        });
+                    }
+                });
             }
         });
 
@@ -60,13 +70,11 @@ public class BootstrapVerticle extends AbstractVerticle {
 
         Future <String> future = Future.future();
 
-        JsonObject configKeys = new JsonObject();
-
         eb.send("config", new JsonObject().put("key", key) , result -> {
             if(result.succeeded()) {
                 JsonObject response = (JsonObject)result.result().body();
                 if(response.getValue(key)!=null){
-                    future.complete(response.getString(key));
+                    future.complete(response.getValue(key).toString());
                     LOGGER.info("using existing secret from config: "+future.result());
                 }else{
                     future.complete(EncryptionHelper.generatePassword());
@@ -111,20 +119,21 @@ public class BootstrapVerticle extends AbstractVerticle {
                 System.out.println("Connected to a server");
                 client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_LEAST_ONCE.value());
 
+                JsonObject configParams = new JsonObject();
+
                 client.publish(
                     msg.getValue("publishTopic").toString(),
                     Buffer.buffer(secret),
                     MqttQoS.AT_LEAST_ONCE,
                     false,
                     false,
-                    s -> LOGGER.info("Publish sent to a server"));
-
-                //write to config that bootstrap process has started
-                JsonObject configParams = new JsonObject();
-                configParams.put("bootstrapped", false);
-                configParams.put("secret", secret);
-                eb.publish("setConfig", configParams);
-
+                    s -> {
+                        LOGGER.info("Publish sent to a server");
+                        //write to config that bootstrap process has started
+                        configParams.put("bootstrapped", false);
+                        configParams.put("secret", secret);
+                        eb.publish("setConfig", configParams);
+                    });
 
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
