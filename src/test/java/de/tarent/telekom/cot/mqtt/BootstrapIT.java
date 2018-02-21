@@ -11,6 +11,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -24,26 +25,23 @@ public class BootstrapIT {
     MQTTHelper helper;
     Vertx vertx;
 
+    @BeforeClass
+    public static void beforeClass() {
+        Vertx vc = Vertx.vertx();
+        MQTTTestServer server = new MQTTTestServer();
+        vc.deployVerticle(server, h-> {
+            if (h.succeeded()){
+                MQTTTestClient client = new MQTTTestClient(false);
+                vc.deployVerticle(client);
+            }
+        });
+
+    }
+
     @Before
     public void before(final TestContext context) {
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
-        MQTTTestServer server = new MQTTTestServer();
-        vertx.deployVerticle(server, context.asyncAssertSuccess(s -> System.out.println("Server deployed: " + s)));
-
-        MQTTTestClient client = new MQTTTestClient();
-        vertx.deployVerticle(client, context.asyncAssertSuccess(s -> System.out.println("Client deployed: " + s)));
-    }
-
-    @After
-    public void after(final TestContext context) {
-        Set<String> list = vertx.deploymentIDs();
-        if (list != null && list.size() > 0) {
-            list.forEach(id -> {
-                logger.info("to undeploy:" + id);
-                vertx.undeploy(id, context.asyncAssertSuccess(s -> System.out.println("Verticle undeployed: " + s)));
-            });
-        }
     }
 
     @Test

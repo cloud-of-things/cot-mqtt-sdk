@@ -24,8 +24,18 @@ public class MQTTTestClient extends AbstractVerticle {
 
     Logger logger = LoggerFactory.getLogger(MQTTTestClient.class);
 
+    private boolean periodicPublishing = false;
+
     public static void main(String[] args){
         Vertx.vertx().deployVerticle(new MQTTTestClient());
+    }
+
+    public MQTTTestClient(){
+        this(true);
+    }
+
+    public MQTTTestClient(boolean startPeriodicPublishing){
+        periodicPublishing = startPeriodicPublishing;
     }
 
     @Override
@@ -64,20 +74,22 @@ public class MQTTTestClient extends AbstractVerticle {
                 logger.info("Connected to a server");
                 mqttClient.subscribe(MQTT_BT_SUBSCRIPTION, MqttQoS.AT_LEAST_ONCE.value());
                 mqttClient.subscribe(MQTT_SUBSCRIPTION, MqttQoS.AT_LEAST_ONCE.value());
-                vertx.setPeriodic(1000,t ->{
-                    mqttClient.publish(MQTT_PUBLISH,
-                            Buffer.buffer(MESSAGE),
-                            MqttQoS.AT_LEAST_ONCE,
-                            false,
-                            false,
-                            finishHandler -> {
-                                if (finishHandler.succeeded()) {
-                                    logger.info(finishHandler.result());
-                                } else {
-                                    logger.error("Error during publishing message", finishHandler.cause());
-                                }
-                            });
-                });
+                if (periodicPublishing) {
+                    vertx.setPeriodic(1000, t -> {
+                        mqttClient.publish(MQTT_PUBLISH,
+                                Buffer.buffer(MESSAGE),
+                                MqttQoS.AT_LEAST_ONCE,
+                                false,
+                                false,
+                                finishHandler -> {
+                                    if (finishHandler.succeeded()) {
+                                        logger.info(finishHandler.result());
+                                    } else {
+                                        logger.error("Error during publishing message", finishHandler.cause());
+                                    }
+                                });
+                    });
+                }
             } else {
                 logger.error("Failed to connect to a server", ch.cause());
             }
