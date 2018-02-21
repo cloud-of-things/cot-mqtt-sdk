@@ -7,7 +7,6 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -29,11 +28,11 @@ public class BootstrapVerticle extends AbstractVerticle {
         eb = vertx.eventBus();
 
         eb.consumer("register", msg -> {
-            registerDevice((JsonObject) msg.body(), msg);
+            registerDevice((JsonObject) msg.body());
         });
     }
 
-    void registerDevice(JsonObject msg, Message handle) {
+    void registerDevice(JsonObject msg) {
 
         Future <JsonObject> config = getConfig();
 
@@ -50,11 +49,11 @@ public class BootstrapVerticle extends AbstractVerticle {
 
                     if (bootstrapped==null) {
                         String newSecret = EncryptionHelper.generatePassword();
-                        setPublishHandler(msg, handle, newSecret);
+                        setPublishHandler(msg, newSecret);
                         LOGGER.info("no bootstrapping request sent. connect and publish.");
                         connectAndPublish(msg, newSecret);
                     } else if(bootstrapped.equals("ongoing")){
-                        setPublishHandler(msg, handle, secret);
+                        setPublishHandler(msg, secret);
                         LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
                         int port = Integer.parseInt(msg.getString("brokerPort"));
                         client.connect(port, msg.getString("brokerURI"), ch -> {
@@ -87,7 +86,7 @@ public class BootstrapVerticle extends AbstractVerticle {
 
     }
 
-    private void setPublishHandler(JsonObject msg, Message handle, String secret){
+    private void setPublishHandler(JsonObject msg, String secret){
         client.publishHandler(s -> {
             if (s.topicName().equals(msg.getString("subscribeTopic"))) {
                 LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"", s.payload().toString("utf-8"), s.topicName()));
@@ -99,7 +98,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                 replyObject.put("status", "registered");
                 replyObject.put("credentials", new String(pass));
 
-                handle.reply(replyObject);
+                eb.publish("bootstrapComplete", replyObject);
 
                 //write to config that bootstrap process is done
                 JsonObject bootStrapDoneMessage = new JsonObject();
