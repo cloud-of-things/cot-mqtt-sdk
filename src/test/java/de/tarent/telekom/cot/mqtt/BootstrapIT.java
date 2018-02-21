@@ -75,7 +75,7 @@ public class BootstrapIT {
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
         prop.setProperty("secret", "1234567890abcdef");
-        prop.setProperty("bootstrapped", "false");
+        prop.setProperty("bootstrapped", "ongoing");
         String devId = "testDevice";
         Async async = context.async();
         helper.registerDevice(devId, prop, back -> {
@@ -83,7 +83,7 @@ public class BootstrapIT {
             context.assertTrue(((String) back).contains("status"));
             async.complete();
         });
-        async.awaitSuccess(8000);
+        async.awaitSuccess(3000);
     }
 
 }

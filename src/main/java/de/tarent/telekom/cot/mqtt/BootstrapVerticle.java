@@ -8,6 +8,7 @@ import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -34,23 +35,26 @@ public class BootstrapVerticle extends AbstractVerticle {
 
     void registerDevice(JsonObject msg, Message handle) {
 
-        Future <String> secret = getConfig("secret");
-        Future <String> bootstrapPending = getConfig("bootstrapped");
+        Future <JsonObject> config = getConfig();
 
         LOGGER.info(msg.encodePrettily());
         MqttClientOptions options = new MqttClientOptions().setPassword(msg.getString("initialPassword")).setUsername(msg.getString("initialUser")).setAutoKeepAlive(true);
         client = MqttClient.create(vertx, options);
 
-        secret.setHandler(s -> {
+        config.setHandler(s -> {
 
             if (s.succeeded()) {
-                setPublishHandler(msg, handle, s.result());
 
-                bootstrapPending.setHandler(p -> {
-                    if (p.succeeded() && !(p.result().equals("false"))) {
+                String bootstrapped = s.result().getString("bootstrapped");
+                String secret = s.result().getString("secret");
+
+                    if (bootstrapped==null) {
+                        String newSecret = EncryptionHelper.generatePassword();
+                        setPublishHandler(msg, handle, newSecret);
                         LOGGER.info("no bootstrapping request sent. connect and publish.");
-                        connectAndPublish(msg, s.result());
-                    } else {
+                        connectAndPublish(msg, newSecret);
+                    } else if(bootstrapped.equals("ongoing")){
+                        setPublishHandler(msg, handle, secret);
                         LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
                         int port = Integer.parseInt(msg.getString("brokerPort"));
                         client.connect(port, msg.getString("brokerURI"), ch -> {
@@ -60,26 +64,20 @@ public class BootstrapVerticle extends AbstractVerticle {
                             }
                         });
                     }
-                });
             }
         });
 
     }
 
-    private Future <String> getConfig(String key){
+    private Future <JsonObject> getConfig(){
 
-        Future <String> future = Future.future();
+        Future <JsonObject> future = Future.future();
 
-        eb.send("config", new JsonObject().put("key", key) , result -> {
+        JsonObject params = new JsonObject().put("keys", new JsonArray().add(new JsonObject().put("key","secret")).add(new JsonObject().put("key","bootstrapped")));
+
+        eb.send("config", params , result -> {
             if(result.succeeded()) {
-                JsonObject response = (JsonObject)result.result().body();
-                if(response.getValue(key)!=null){
-                    future.complete(response.getValue(key).toString());
-                    LOGGER.info("using existing secret from config: "+future.result());
-                }else{
-                    future.complete(EncryptionHelper.generatePassword());
-                    LOGGER.info("no secret in config found, generating new secret: "+future.result());
-                }
+                future.complete((JsonObject)result.result().body());
             }else{
                 future.fail(result.cause());
             }
@@ -105,7 +103,7 @@ public class BootstrapVerticle extends AbstractVerticle {
 
                 //write to config that bootstrap process is done
                 JsonObject bootStrapDoneMessage = new JsonObject();
-                bootStrapDoneMessage.put("bootstrapped", true);
+                bootStrapDoneMessage.put("bootstrapped", "bootstrapped");
                 eb.publish("setConfig", bootStrapDoneMessage);
             }
         });
@@ -130,7 +128,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                     s -> {
                         LOGGER.info("Publish sent to a server");
                         //write to config that bootstrap process has started
-                        configParams.put("bootstrapped", false);
+                        configParams.put("bootstrapped", "ongoing");
                         configParams.put("secret", secret);
                         eb.publish("setConfig", configParams);
                     });
