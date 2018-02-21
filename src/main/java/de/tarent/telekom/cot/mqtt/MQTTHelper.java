@@ -89,7 +89,7 @@ public class MQTTHelper extends AbstractVerticle {
                     callback.accept(registeredResult.encodePrettily());
             });
 
-        eventBus.send("register", msg);
+        eventBus.publish("register", msg);
     }
 
     /**

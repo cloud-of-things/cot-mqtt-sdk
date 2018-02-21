@@ -98,7 +98,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                 replyObject.put("status", "registered");
                 replyObject.put("credentials", new String(pass));
 
-                eb.send("bootstrapComplete", replyObject);
+                eb.publish("bootstrapComplete", replyObject);
 
                 //write to config that bootstrap process is done
                 JsonObject bootStrapDoneMessage = new JsonObject();
