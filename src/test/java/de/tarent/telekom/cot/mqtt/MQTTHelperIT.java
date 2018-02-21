@@ -33,6 +33,7 @@ public class MQTTHelperIT {
         prop.setProperty("bootstrap.initialpassword","Fhdt1bb1f" );
         prop.setProperty("bootstrap.brokerURI","localhost" );
         prop.setProperty("bootstrap.brokerPort","11883" );
+        prop.setProperty("secret","1234567890abcdef");
         JsonObject conf = JsonHelper.from(prop);
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
@@ -101,4 +102,24 @@ public class MQTTHelperIT {
 
         async.awaitSuccess(5000);
     }
+
+    @Test
+    public void testConfigContainsSecret(TestContext context){
+        EventBus eb = vertx.eventBus();
+        JsonObject question = new JsonObject().put("key", "secret");
+        Async async = context.async();
+        eb.send("config", question, r ->{
+            if (r.succeeded()){
+                JsonObject prop = (JsonObject)r.result().body();
+                logger.info("prop"+prop.encodePrettily());
+                context.assertEquals("1234567890abcdef",prop.getString("secret"));
+            }else{
+                logger.info("Error");
+                context.fail(r.cause());
+            }
+            async.complete();
+        });
+        async.awaitSuccess(3000);
+    }
+
 }
