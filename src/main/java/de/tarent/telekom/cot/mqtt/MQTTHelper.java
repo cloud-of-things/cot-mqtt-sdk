@@ -78,19 +78,18 @@ public class MQTTHelper extends AbstractVerticle {
     public void registerDevice(final String deviceId, final Properties prop, final Consumer callback) {
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
-        eventBus.publish("setConfig", msg);
         msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
         msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
-        eventBus.send("register", msg, result -> {
-            if (result.succeeded()) {
-                final JsonObject registeredResult = (JsonObject) result.result().body();
-                eventBus.publish("setConfig", registeredResult);
-                //ToDo:prepare ReturnMSG
-                callback.accept(registeredResult.encodePrettily());
-            } else {
-                logger.error("Registration failed - ", result.cause());
-            }
-        });
+        eventBus.publish("setConfig", msg);
+
+        eventBus.consumer("bootstrapComplete", result -> {
+                    final JsonObject registeredResult = (JsonObject) result.body();
+                    eventBus.publish("setConfig", registeredResult);
+                    //ToDo:prepare ReturnMSG
+                    callback.accept(registeredResult.encodePrettily());
+            });
+
+        eventBus.send("register", msg);
     }
 
     /**
