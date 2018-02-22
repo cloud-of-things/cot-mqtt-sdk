@@ -24,11 +24,11 @@ import java.util.Set;
 public class MQTTHelperIT {
 
     static Logger logger = LoggerFactory.getLogger(MQTTHelperIT.class);
-    MQTTHelper helper;
-    Vertx vertx;
+    static MQTTHelper helper;
 
-    @Before
-    public void before() {
+
+    @BeforeClass
+    public static void beforeClass() throws Exception {
         Properties prop = new Properties();
         prop.setProperty("bootstrap.initialuser", "devicebootstrap");
         prop.setProperty("bootstrap.initialpassword", "Fhdt1bb1f");
@@ -37,20 +37,10 @@ public class MQTTHelperIT {
         prop.setProperty("secret", "1234567890abcdef");
         JsonObject conf = JsonHelper.from(prop);
         helper = MQTTHelper.getInstance();
-        vertx = helper.getVertx();
+        Thread.sleep(1000);
+        Vertx vertx = helper.getVertx();
         EventBus eb = vertx.eventBus();
         eb.publish("setConfig", conf);
-    }
-
-    @After
-    public void after(final TestContext context) {
-        Set<String> list = vertx.deploymentIDs();
-        if (list != null && list.size() > 0) {
-            list.forEach(id -> {
-                logger.info(id);
-                vertx.undeploy(id, context.asyncAssertSuccess(s -> System.out.println("Verticle undeployed: " + s)));
-            });
-        }
     }
 
     @Test
@@ -60,7 +50,7 @@ public class MQTTHelperIT {
 
     @Test
     public void testConfiguration(TestContext context) {
-        EventBus eb = vertx.eventBus();
+        EventBus eb = helper.getVertx().eventBus();
         JsonObject question = new JsonObject().put("key", "bootstrap.brokerPort");
         Async async = context.async();
         eb.send("config", question, r -> {
@@ -79,7 +69,7 @@ public class MQTTHelperIT {
 
     @Test
     public void testSetConfig(TestContext context) {
-        EventBus eb = vertx.eventBus();
+        EventBus eb = helper.getVertx().eventBus();
         JsonObject toSet = new JsonObject().put("testKey", "testVal");
         Async async = context.async();
         eb.publish("setConfig", toSet);
@@ -106,7 +96,7 @@ public class MQTTHelperIT {
 
     @Test
     public void testConfigContainsSecret(TestContext context) {
-        EventBus eb = vertx.eventBus();
+        EventBus eb = helper.getVertx().eventBus();
         JsonObject question = new JsonObject().put("key", "secret");
         Async async = context.async();
         eb.send("config", question, r -> {

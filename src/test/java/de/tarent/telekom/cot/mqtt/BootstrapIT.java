@@ -43,7 +43,6 @@ public class BootstrapIT {
                 vc.deployVerticle(client);
             }
         });
-
     }
 
     @Before
