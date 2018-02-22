@@ -22,7 +22,22 @@ public class Configuration extends AbstractVerticle {
 
     @Override
     public void start() {
+        EventBus eb = vertx.eventBus();
 
+        eb.consumer("config", msg -> {
+            JsonObject o = (JsonObject) msg.body();
+            msg.reply(getConfig(o));
+        });
+        eb.consumer("setConfig", h -> {
+            logger.info("in setConfig");
+            JsonObject msg = (JsonObject) h.body();
+            setConfig(msg);
+            h.reply(msg.put("saved", true));
+        });
+        eb.consumer("resetConfig", rh -> {
+            resetConfig();
+            rh.reply(new JsonObject().put("status", "Config cleared"));
+        });
         ConfigRetriever retriever = ConfigRetriever.create(vertx);
         retriever.getConfig(ch -> {
             if (ch.succeeded()) {
@@ -51,22 +66,7 @@ public class Configuration extends AbstractVerticle {
                     }
                 });
 
-                EventBus eb = vertx.eventBus();
 
-                eb.consumer("config", msg -> {
-                    JsonObject o = (JsonObject) msg.body();
-                    msg.reply(getConfig(o));
-                });
-                eb.consumer("setConfig", h -> {
-                    logger.info("in setConfig");
-                    JsonObject msg = (JsonObject) h.body();
-                    setConfig(msg);
-                    h.reply(msg.put("saved", true));
-                });
-                eb.consumer("resetConfig", rh -> {
-                    resetConfig();
-                    rh.reply(new JsonObject().put("status", "Config cleared"));
-                });
 
                 logger.info("Configuration deployed");
 
@@ -91,7 +91,7 @@ public class Configuration extends AbstractVerticle {
     public void setConfig(JsonObject obj) {
         conf.mergeIn(obj);
         FileSystem fs = vertx.fileSystem();
-        fs.writeFile(sysConf.getString("configPath"), Buffer.buffer(conf.encode()), fh -> {
+        fs.writeFile(sysConf.getString("configPath"), Buffer.buffer(conf.encodePrettily()), fh -> {
             if (fh.succeeded()) {
                 logger.info("configuration saved");
             }else{
@@ -105,7 +105,7 @@ public class Configuration extends AbstractVerticle {
         conf.clear();
         FileSystem fs = vertx.fileSystem();
         fs.writeFile(sysConf.getString("configPath"), Buffer.buffer(conf.encode()), fh -> {
-            logger.info("configuration saved");
+            logger.info("configuration cleared");
         });
     }
 }

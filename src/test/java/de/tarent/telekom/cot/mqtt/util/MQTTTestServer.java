@@ -52,6 +52,16 @@ public class MQTTTestServer extends AbstractVerticle {
                });
             });
 
+            endpoint.unsubscribeHandler(ush ->{
+                ush.topics().forEach(u ->{
+                    subscriptions.forEach(sub ->{
+                        if (sub.topic.equals(u) && sub.endpoint.equals(endpoint)){
+                            subscriptions.remove(sub);
+                        }
+                    });
+                });
+            });
+
             endpoint.accept(false);
         });
 

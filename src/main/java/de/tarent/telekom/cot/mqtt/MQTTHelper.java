@@ -10,6 +10,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
 
@@ -26,44 +29,39 @@ public class MQTTHelper extends AbstractVerticle {
     private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
     private static MQTTHelper helper;
 
+    final Configuration config = new Configuration();
+    final BootstrapVerticle bootstrapVerticle = new BootstrapVerticle();
+    final MessageVerticle messageVerticle = new MessageVerticle();
+
+    final List<String> deploymentIds = new ArrayList<>();
+
+    public static void main(String[] arg){
+        initAPI();
+    }
+
     @Override
-    public void start(Future<Void> startFuture){
-
-        Future<Void> configFuture = Future.future();
-        Future<Void> bootstrapFuture = Future.future();
-        Future<Void> messageFuture = Future.future();
-        final Configuration config = new Configuration();
-        vertx.deployVerticle(config, ch -> {
-            if (ch.succeeded()) {
-                configFuture.complete();
+    public void start(){
+        vertx.deployVerticle(config, dh ->{
+            if (dh.succeeded()){
+                deploymentIds.add(dh.result());
+            }
+        });
+        vertx.deployVerticle(bootstrapVerticle, dh ->{
+            if (dh.succeeded()){
+                deploymentIds.add(dh.result());
+            }
+        });
+        vertx.deployVerticle(messageVerticle, dh ->{
+            if (dh.succeeded()){
+                deploymentIds.add(dh.result());
             }
         });
 
-        final BootstrapVerticle bootstrapVerticle = new BootstrapVerticle();
-        vertx.deployVerticle(bootstrapVerticle, ch -> {
-            if (ch.succeeded()) {
-                bootstrapFuture.complete();
-            }
-        });
-
-        final MessageVerticle messageVerticle = new MessageVerticle();
-        vertx.deployVerticle(messageVerticle, ch -> {
-            if (ch.succeeded()) {
-                messageFuture.complete();
-            }
-        });
-
-        CompositeFuture.all(configFuture, bootstrapFuture, messageFuture).setHandler(cf ->{
-            if (cf.succeeded()){
-                logger.info("Verticles started");
-                startFuture.complete();
-            }
-        });
+        logger.info("Verticles started");
     }
 
     /**
-     * Starts all the included {@link io.vertx.core.Verticle}s ({@link Configuration}, {@link BootstrapVerticle},
-     * {@link MessageVerticle} and {@link MQTTHelper}).
+     * Deploys the {@link MQTTHelper}).
      */
     private static void initAPI() {
 
@@ -91,7 +89,9 @@ public class MQTTHelper extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
-        super.stop();
+        deploymentIds.forEach(id ->{
+            vertx.undeploy(id);
+        });
         helper = null;
     }
 
@@ -108,13 +108,8 @@ public class MQTTHelper extends AbstractVerticle {
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
         msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
-        eventBus.send("setConfig", msg, r -> {
-            if (r.succeeded()){
-
-            }else{
-                logger.error("error during readConfig", r.cause());
-            }
-        });
+        msg.put("deviceId",deviceId);
+        eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
             final JsonObject registeredResult = (JsonObject) result.body();

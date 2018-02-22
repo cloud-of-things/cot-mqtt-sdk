@@ -43,6 +43,7 @@ public class MQTTTestClient extends AbstractVerticle {
         MqttClientOptions option = new MqttClientOptions();
         option.setUsername("testuser");
         option.setPassword("initPW");
+        option.setClientId("endpointClient");
         MqttClient mqttClient = MqttClient.create(vertx, option);
         mqttClient.publishHandler(h->{
             if (h.topicName().equals(MQTT_BT_SUBSCRIPTION)) {
