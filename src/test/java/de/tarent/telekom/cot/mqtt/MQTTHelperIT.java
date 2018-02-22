@@ -27,13 +27,13 @@ public class MQTTHelperIT {
     Vertx vertx;
 
     @Before
-    public void before(){
+    public void before() {
         Properties prop = new Properties();
-        prop.setProperty("bootstrap.initialuser","devicebootstrap");
-        prop.setProperty("bootstrap.initialpassword","Fhdt1bb1f" );
-        prop.setProperty("bootstrap.brokerURI","localhost" );
-        prop.setProperty("bootstrap.brokerPort","11883" );
-        prop.setProperty("secret","1234567890abcdef");
+        prop.setProperty("bootstrap.initialuser", "devicebootstrap");
+        prop.setProperty("bootstrap.initialpassword", "Fhdt1bb1f");
+        prop.setProperty("bootstrap.brokerURI", "localhost");
+        prop.setProperty("bootstrap.brokerPort", "11883");
+        prop.setProperty("secret", "1234567890abcdef");
         JsonObject conf = JsonHelper.from(prop);
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
@@ -42,32 +42,32 @@ public class MQTTHelperIT {
     }
 
     @After
-    public void after(){
+    public void after(final TestContext context) {
         Set<String> list = vertx.deploymentIDs();
-        if (list!= null && list.size()>0) {
+        if (list != null && list.size() > 0) {
             list.forEach(id -> {
                 logger.info(id);
-                vertx.undeploy(id);
+                vertx.undeploy(id, context.asyncAssertSuccess(s -> System.out.println("Verticle undeployed: " + s)));
             });
         }
     }
 
     @Test
-    public void testHelperIsDeployed(TestContext context){
-        context.assertNotNull (helper.deploymentID());
+    public void testHelperIsDeployed(TestContext context) {
+        context.assertNotNull(helper.deploymentID());
     }
 
     @Test
-    public void testConfiguration(TestContext context){
+    public void testConfiguration(TestContext context) {
         EventBus eb = vertx.eventBus();
         JsonObject question = new JsonObject().put("key", "bootstrap.brokerPort");
         Async async = context.async();
-        eb.send("config", question, r ->{
-            if (r.succeeded()){
-                JsonObject prop = (JsonObject)r.result().body();
-                logger.info("prop"+prop.encodePrettily());
-                context.assertEquals("11883",prop.getString("bootstrap.brokerPort"));
-            }else{
+        eb.send("config", question, r -> {
+            if (r.succeeded()) {
+                JsonObject prop = (JsonObject) r.result().body();
+                logger.info("prop" + prop.encodePrettily());
+                context.assertEquals("11883", prop.getString("bootstrap.brokerPort"));
+            } else {
                 logger.info("Error");
                 context.fail(r.cause());
             }
@@ -77,23 +77,23 @@ public class MQTTHelperIT {
     }
 
     @Test
-    public void testSetConfig(TestContext context){
+    public void testSetConfig(TestContext context) {
         EventBus eb = vertx.eventBus();
         JsonObject toSet = new JsonObject().put("testKey", "testVal");
         Async async = context.async();
         eb.publish("setConfig", toSet);
         try {
             Thread.currentThread().wait(1000);
-        }catch(Exception e){
-            logger.error(e.getMessage(),e);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
         JsonObject question = new JsonObject().put("key", "testKey");
-        eb.send("config", question, r ->{
-            if (r.succeeded()){
-                JsonObject prop = (JsonObject)r.result().body();
-                context.assertEquals("testVal",prop.getString("testKey"));
+        eb.send("config", question, r -> {
+            if (r.succeeded()) {
+                JsonObject prop = (JsonObject) r.result().body();
+                context.assertEquals("testVal", prop.getString("testKey"));
 
-            }else{
+            } else {
                 logger.info("Error");
                 context.fail(r.cause());
             }
@@ -104,11 +104,11 @@ public class MQTTHelperIT {
     }
 
     @Test
-    public void testConfigContainsSecret(TestContext context){
+    public void testConfigContainsSecret(TestContext context) {
         EventBus eb = vertx.eventBus();
         JsonObject question = new JsonObject().put("key", "secret");
         Async async = context.async();
-        eb.send("config", question, r ->{
+        eb.send("config", question, r -> {
             if (r.succeeded()){
                 JsonObject prop = (JsonObject)r.result().body();
                 logger.info("prop"+prop.encodePrettily());

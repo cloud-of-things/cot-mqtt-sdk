@@ -2,9 +2,6 @@ package de.tarent.telekom.cot.mqtt;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
@@ -34,13 +31,6 @@ public class MessageVerticle extends AbstractVerticle {
         eventBus.consumer("subscribe", msg -> {
             subscribeToTopic((JsonObject) msg.body(), msg);
         });
-    }
-
-    @Override
-    public void stop(){
-        if (client.isConnected()) {
-            client.disconnect();
-        }
     }
 
     /**
