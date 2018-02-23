@@ -92,6 +92,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                 LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"", s.payload().toString("utf-8"), s.topicName()));
                 EncryptionHelper ech = new EncryptionHelper();
                 byte[] pass = ech.decrypt(new Secret(secret), s.payload().getBytes());
+                client.unsubscribe(msg.getString("subscribeTopic"));
                 client.disconnect();
 
                 JsonObject replyObject = new JsonObject();

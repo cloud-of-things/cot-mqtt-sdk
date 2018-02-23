@@ -33,6 +33,7 @@ public class MessageVerticle extends AbstractVerticle {
         });
     }
 
+
     /**
      * Publish a message with the given {@link JsonObject} that should contain the message, topic and connection Strings.
      *
