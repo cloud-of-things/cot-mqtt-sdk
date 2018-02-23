@@ -68,16 +68,12 @@ public class MQTTHelperIT {
     }
 
     @Test
-    public void testSetConfig(TestContext context) {
+    public void testSetConfig(TestContext context) throws InterruptedException {
         EventBus eb = helper.getVertx().eventBus();
         JsonObject toSet = new JsonObject().put("testKey", "testVal");
         Async async = context.async();
         eb.publish("setConfig", toSet);
-        try {
-            Thread.currentThread().wait(1000);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
+        Thread.sleep(1000);
         JsonObject question = new JsonObject().put("key", "testKey");
         eb.send("config", question, r -> {
             if (r.succeeded()) {
