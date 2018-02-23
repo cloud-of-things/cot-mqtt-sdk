@@ -8,6 +8,7 @@ import io.vertx.mqtt.MqttServer;
 import io.vertx.mqtt.MqttServerOptions;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -54,10 +55,14 @@ public class MQTTTestServer extends AbstractVerticle {
 
             endpoint.unsubscribeHandler(ush ->{
                 ush.topics().forEach(u ->{
+                    final List<Subscription> toDelete = new ArrayList<>();
                     subscriptions.forEach(sub ->{
                         if (sub.topic.equals(u) && sub.endpoint.equals(endpoint)){
-                            subscriptions.remove(sub);
+                            toDelete.add(sub);
                         }
+                    });
+                    toDelete.forEach(sub ->{
+                        subscriptions.remove(sub);
                     });
                 });
             });
