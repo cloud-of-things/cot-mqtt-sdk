@@ -67,7 +67,7 @@ public class BootstrapIT {
         Thread.sleep(1000);
     }
 
-//    @Test
+    @Test
     public void testConfiguration(TestContext context){
         Properties prop = new Properties();
         prop.setProperty("initialUser", "devicebootstrap");
