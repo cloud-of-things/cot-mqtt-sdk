@@ -156,6 +156,7 @@ public class MQTTHelper extends AbstractVerticle {
      */
     public void subscribeToTopic(final String deviceId, final Properties prop, final Consumer subscriptionCallback,
         final Consumer callback) {
+
         final EventBus eventBus = vertx.eventBus();
         eventBus.consumer("received", h -> {
             final JsonObject registeredResult = (JsonObject) h.body();
@@ -178,10 +179,10 @@ public class MQTTHelper extends AbstractVerticle {
      * @param deviceId               the given device with which to unsubscribe to a topic
      * @param prop                   the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
      * @param unsubscriptionCallback the callback to check if unsubscription is successful (needed for integration tests)
-     * @param callback               the callback function to receive the possible successful unsubscribe message
      */
     public void unsubscribeFromTopic(final String deviceId, final Properties prop,
-        final Consumer unsubscriptionCallback, final Consumer callback) {
+        final Consumer unsubscriptionCallback) {
+
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);

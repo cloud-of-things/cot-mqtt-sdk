@@ -133,12 +133,12 @@ public class MessageVerticle extends AbstractVerticle {
         }
 
         if (client.isConnected()) {
-            unsubscribe(msg);
+            unsubscribe(msg, handle);
         } else {
             client.connect(port, msg.getString("brokerURI"), ch -> {
                 if (ch.succeeded()) {
                     LOGGER.info("Connected to a server");
-                    unsubscribe(msg);
+                    unsubscribe(msg, handle);
                 } else {
                     LOGGER.error("Failed to connect to a server", ch.cause());
                 }
@@ -155,7 +155,11 @@ public class MessageVerticle extends AbstractVerticle {
                 });
     }
 
-    private void unsubscribe(final JsonObject msg) {
-        client.unsubscribe(msg.getString("unsubscribeTopic"));
+    private void unsubscribe(final JsonObject msg, final Message handle) {
+        client.unsubscribe(msg.getString("unsubscribeTopic"), s -> {
+            LOGGER.info("Unsubscribe call sent to a server");
+            final JsonObject jso = new JsonObject().put("unsubscribed", true);
+            handle.reply(jso);
+        });
     }
 }

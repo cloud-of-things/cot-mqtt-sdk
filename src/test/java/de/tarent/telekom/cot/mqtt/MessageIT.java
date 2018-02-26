@@ -9,14 +9,11 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Properties;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -80,6 +77,24 @@ public class MessageIT {
             logger.info("message received");//receive message not yet realized in Helper classes, so not tested yet
             assertEquals("15,sim770\\n410,OPID1,SUCCESSFUL,result of the successful command,ln -s",
                 callback.toString());
+            async.complete();
+        });
+
+        async.awaitSuccess(3000);
+    }
+
+    @Test
+    public void testUnsubscribeFromTopic(final TestContext context) {
+        Properties prop = new Properties();
+        prop.setProperty("user", "unsubscribeUser");
+        prop.setProperty("password", "somePassword");
+        prop.setProperty("brokerURI", "localhost");
+        prop.setProperty("brokerPort", "11883");
+        final String deviceId = "testDevice";
+        final Async async = context.async();
+        helper.unsubscribeFromTopic(deviceId, prop, back -> {
+            logger.info("Back:" + back);
+            assertTrue(back.toString().contains("unsubscribed"));
             async.complete();
         });
 
