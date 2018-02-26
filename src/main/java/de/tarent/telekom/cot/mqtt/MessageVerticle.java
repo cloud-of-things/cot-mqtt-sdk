@@ -31,6 +31,10 @@ public class MessageVerticle extends AbstractVerticle {
         eventBus.consumer("subscribe", msg -> {
             subscribeToTopic((JsonObject) msg.body(), msg);
         });
+
+        eventBus.consumer("unsubscribe", msg -> {
+            unsubscribeFromTopic((JsonObject) msg.body(), msg);
+        });
     }
 
 
@@ -115,6 +119,33 @@ public class MessageVerticle extends AbstractVerticle {
         }
     }
 
+    private void unsubscribeFromTopic(final JsonObject msg, final Message handle) {
+        final MqttClientOptions options = new MqttClientOptions()
+                .setPassword(msg.getString("password"))
+                .setUsername(msg.getString("user"))
+                .setAutoKeepAlive(true);
+
+        //connect and subscribe on /iccid
+        final int port = Integer.parseInt(msg.getString("brokerPort"));
+
+        if (client == null) {
+            client = MqttClient.create(vertx, options);
+        }
+
+        if (client.isConnected()) {
+            unsubscribe(msg, handle);
+        } else {
+            client.connect(port, msg.getString("brokerURI"), ch -> {
+                if (ch.succeeded()) {
+                    LOGGER.info("Connected to a server");
+                    unsubscribe(msg, handle);
+                } else {
+                    LOGGER.error("Failed to connect to a server", ch.cause());
+                }
+            });
+        }
+    }
+
     private void subscribe(final JsonObject msg, final Message handle) {
         client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
                 s -> {
@@ -122,5 +153,13 @@ public class MessageVerticle extends AbstractVerticle {
                     JsonObject jso = new JsonObject().put("subscribed", true);
                     handle.reply(jso);
                 });
+    }
+
+    private void unsubscribe(final JsonObject msg, final Message handle) {
+        client.unsubscribe(msg.getString("unsubscribeTopic"), s -> {
+            LOGGER.info("Unsubscribe call sent to a server");
+            final JsonObject jso = new JsonObject().put("unsubscribed", true);
+            handle.reply(jso);
+        });
     }
 }

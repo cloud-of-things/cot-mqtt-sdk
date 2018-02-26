@@ -2,8 +2,6 @@ package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -11,7 +9,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -35,24 +32,24 @@ public class MQTTHelper extends AbstractVerticle {
 
     final List<String> deploymentIds = new ArrayList<>();
 
-    public static void main(String[] arg){
+    public static void main(String[] arg) {
         initAPI();
     }
 
     @Override
-    public void start(){
-        vertx.deployVerticle(config, dh ->{
-            if (dh.succeeded()){
+    public void start() {
+        vertx.deployVerticle(config, dh -> {
+            if (dh.succeeded()) {
                 deploymentIds.add(dh.result());
             }
         });
-        vertx.deployVerticle(bootstrapVerticle, dh ->{
-            if (dh.succeeded()){
+        vertx.deployVerticle(bootstrapVerticle, dh -> {
+            if (dh.succeeded()) {
                 deploymentIds.add(dh.result());
             }
         });
-        vertx.deployVerticle(messageVerticle, dh ->{
-            if (dh.succeeded()){
+        vertx.deployVerticle(messageVerticle, dh -> {
+            if (dh.succeeded()) {
                 deploymentIds.add(dh.result());
             }
         });
@@ -89,7 +86,7 @@ public class MQTTHelper extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
-        deploymentIds.forEach(id ->{
+        deploymentIds.forEach(id -> {
             vertx.undeploy(id);
         });
         helper = null;
@@ -108,7 +105,7 @@ public class MQTTHelper extends AbstractVerticle {
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
         msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
-        msg.put("deviceId",deviceId);
+        msg.put("deviceId", deviceId);
         eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
@@ -131,7 +128,7 @@ public class MQTTHelper extends AbstractVerticle {
      * @param callback the callback function to receive the created credentials
      */
     public void publishMessage(final String deviceId, final String message, final Properties prop,
-                               final Consumer callback) {
+        final Consumer callback) {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
@@ -155,10 +152,11 @@ public class MQTTHelper extends AbstractVerticle {
      * @param deviceId             the given device with which to subscribe to a topic
      * @param prop                 the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
      * @param subscriptionCallback the callback to check if subscription is successful (needed for integration tests)
-     * @param callback             the callback function to receive the created credentials
+     * @param callback             the callback function to receive the messages
      */
     public void subscribeToTopic(final String deviceId, final Properties prop, final Consumer subscriptionCallback,
-                                 final Consumer callback) {
+        final Consumer callback) {
+
         final EventBus eventBus = vertx.eventBus();
         eventBus.consumer("received", h -> {
             final JsonObject registeredResult = (JsonObject) h.body();
@@ -171,6 +169,28 @@ public class MQTTHelper extends AbstractVerticle {
                 subscriptionCallback.accept(messageHandler.result().body());
             } else {
                 subscriptionCallback.accept(messageHandler.cause().getMessage());
+            }
+        });
+    }
+
+    /**
+     * Unsubscribes to a given topic with the given {@link Properties}.
+     *
+     * @param deviceId               the given device with which to unsubscribe to a topic
+     * @param prop                   the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param unsubscriptionCallback the callback to check if unsubscription is successful (needed for integration tests)
+     */
+    public void unsubscribeFromTopic(final String deviceId, final Properties prop,
+        final Consumer unsubscriptionCallback) {
+
+        final EventBus eventBus = vertx.eventBus();
+        final JsonObject msg = JsonHelper.from(prop);
+        msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+        eventBus.send("unsubscribe", msg, messageHandler -> {
+            if (messageHandler.succeeded()) {
+                unsubscriptionCallback.accept(messageHandler.result().body());
+            } else {
+                unsubscriptionCallback.accept(messageHandler.cause().getMessage());
             }
         });
     }
