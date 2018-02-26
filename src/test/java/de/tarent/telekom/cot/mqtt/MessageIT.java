@@ -53,7 +53,7 @@ public class MessageIT {
         final Async async = context.async();
         helper.publishMessage(deviceId, message, prop, back -> {
             logger.info("Back:" + back);
-            assertTrue(back.toString().contains("published"));
+            context.assertTrue((boolean) back);
             async.complete();
         });
 
@@ -71,7 +71,7 @@ public class MessageIT {
         final Async async = context.async();
         helper.subscribeToTopic(deviceId, prop, back -> {
             logger.info("Back:" + back);
-            assertTrue(back.toString().contains("subscribed"));
+            context.assertTrue((boolean) back);
             async.complete();
         }, callback -> {
             logger.info("message received");//receive message not yet realized in Helper classes, so not tested yet

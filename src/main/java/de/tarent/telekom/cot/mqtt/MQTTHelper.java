@@ -139,7 +139,7 @@ public class MQTTHelper extends AbstractVerticle {
             if (result.succeeded()) {
                 final JsonObject registeredResult = (JsonObject) result.result().body();
                 //ToDo:prepare ReturnMSG
-                callback.accept(registeredResult.encodePrettily());
+                callback.accept(registeredResult.getBoolean("published"));
             } else {
                 logger.error("Sending message failed - ", result.cause());
             }
@@ -166,9 +166,11 @@ public class MQTTHelper extends AbstractVerticle {
         msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
         eventBus.send("subscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
-                subscriptionCallback.accept(messageHandler.result().body());
+            	JsonObject o = (JsonObject)messageHandler.result().body();
+                subscriptionCallback.accept(o.getBoolean("subscribed"));
             } else {
-                subscriptionCallback.accept(messageHandler.cause().getMessage());
+            		logger.error(messageHandler.cause().getMessage(), messageHandler.cause());
+                subscriptionCallback.accept(false);
             }
         });
     }

@@ -73,7 +73,7 @@ public class SystemTest {
         Async async = context.async();
         helper.publishMessage(MSG_DEVICE, MESSAGE, prop, back -> {
             logger.info("Back:" + back);
-            context.assertTrue(back.toString().contains("published"));
+            context.assertTrue((boolean) back);
             async.complete();
         });
         async.awaitSuccess(30000);
