@@ -4,6 +4,7 @@ import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -205,9 +206,11 @@ public class MQTTHelper extends AbstractVerticle {
         msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
         eventBus.send("unsubscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
-                unsubscriptionCallback.accept(messageHandler.result().body());
+            		JsonObject o = (JsonObject) messageHandler.result().body();
+                unsubscriptionCallback.accept(o.getBoolean("unsubscribed"));
             } else {
-                unsubscriptionCallback.accept(messageHandler.cause().getMessage());
+            		logger.error(messageHandler.cause().getMessage(), messageHandler.cause());
+                unsubscriptionCallback.accept(false);
             }
         });
     }

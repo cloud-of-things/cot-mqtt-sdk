@@ -59,7 +59,7 @@ public class MessageIT {
             async.complete();
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(4000);
     }
 
     @Test
@@ -157,7 +157,7 @@ public class MessageIT {
         final Async async = context.async();
         helper.unsubscribeFromTopic(deviceId, prop, back -> {
             logger.info("Back:" + back);
-            assertTrue(back.toString().contains("unsubscribed"));
+            context.assertTrue((boolean) back);
             async.complete();
         });
 
