@@ -97,7 +97,7 @@ public class BootstrapVerticle extends AbstractVerticle {
 
                 JsonObject replyObject = new JsonObject();
                 replyObject.put("status", "registered");
-                replyObject.put("credentials", new String(pass));
+                replyObject.put("password", new String(pass));
 
                 eb.publish("bootstrapComplete", replyObject);
 

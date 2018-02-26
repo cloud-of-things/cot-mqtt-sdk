@@ -115,7 +115,7 @@ public class MQTTHelper extends AbstractVerticle {
             final JsonObject registeredResult = (JsonObject) result.body();
             eventBus.publish("setConfig", registeredResult);
             //ToDo:prepare ReturnMSG
-            callback.accept(registeredResult.getString("credentials"));
+            callback.accept(registeredResult.getString("password"));
         });
 
         eventBus.publish("register", msg);
