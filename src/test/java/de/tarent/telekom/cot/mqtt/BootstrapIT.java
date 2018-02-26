@@ -95,7 +95,7 @@ public class BootstrapIT {
         Async async = context.async();
         helper.registerDevice(devId, prop, back -> {
             logger.info("Back:" + back);
-            context.assertTrue(((String) back).contains("status"));
+            context.assertNotNull(back);
             async.complete();
         });
         async.awaitSuccess(3000);
@@ -117,7 +117,7 @@ public class BootstrapIT {
         Async async = context.async();
         helper.registerDevice(devId, prop, back -> {
             logger.info("Back:" + back);
-            context.assertTrue(((String) back).contains("status"));
+            context.assertNotNull(back);
             async.complete();
         });
         MqttClientOptions option = new MqttClientOptions();
