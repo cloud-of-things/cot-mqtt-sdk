@@ -183,10 +183,6 @@ public class MQTTHelper extends AbstractVerticle {
     public void unsubscribeFromTopic(final String deviceId, final Properties prop,
         final Consumer unsubscriptionCallback, final Consumer callback) {
         final EventBus eventBus = vertx.eventBus();
-        eventBus.consumer("received", h -> {
-            final JsonObject registeredResult = (JsonObject) h.body();
-            callback.accept(registeredResult.getString("received"));
-        });
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
         eventBus.send("unsubscribe", msg, messageHandler -> {
