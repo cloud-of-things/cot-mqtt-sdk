@@ -2,8 +2,6 @@ package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -11,7 +9,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -155,7 +152,7 @@ public class MQTTHelper extends AbstractVerticle {
      * @param deviceId             the given device with which to subscribe to a topic
      * @param prop                 the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
      * @param subscriptionCallback the callback to check if subscription is successful (needed for integration tests)
-     * @param callback             the callback function to receive the created credentials
+     * @param callback             the callback function to receive the messages
      */
     public void subscribeToTopic(final String deviceId, final Properties prop, final Consumer subscriptionCallback,
                                  final Consumer callback) {
@@ -167,6 +164,32 @@ public class MQTTHelper extends AbstractVerticle {
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
         eventBus.send("subscribe", msg, messageHandler -> {
+            if (messageHandler.succeeded()) {
+                subscriptionCallback.accept(messageHandler.result().body());
+            } else {
+                subscriptionCallback.accept(messageHandler.cause().getMessage());
+            }
+        });
+    }
+
+    /**
+     * Unsubscribes to a given topic with the given {@link Properties}.
+     *
+     * @param deviceId             the given device with which to unsubscribe to a topic
+     * @param prop                 the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param subscriptionCallback the callback to check if subscription is successful (needed for integration tests)
+     * @param callback             the callback function to receive the possible successful unsubscribe message
+     */
+    public void unsubscribeFromTopic(final String deviceId, final Properties prop, final Consumer subscriptionCallback,
+                                 final Consumer callback) {
+        final EventBus eventBus = vertx.eventBus();
+        eventBus.consumer("received", h -> {
+            final JsonObject registeredResult = (JsonObject) h.body();
+            callback.accept(registeredResult.getString("received"));
+        });
+        final JsonObject msg = JsonHelper.from(prop);
+        msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+        eventBus.send("unsubscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
                 subscriptionCallback.accept(messageHandler.result().body());
             } else {
