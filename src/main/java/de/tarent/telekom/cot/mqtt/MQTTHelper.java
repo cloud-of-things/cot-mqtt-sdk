@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  */
 public class MQTTHelper extends AbstractVerticle {
 
-    static final String deviceNotBootstrappedMessage = "Device is not bootstrapped! Please bootstrap the device before trying to subscribe.";
+    static final String DEVICE_NOT_BOOTSTRAPPED = "Device is not bootstrapped! Please bootstrap the device before trying to subscribe.";
 
     private static final Logger logger = LoggerFactory.getLogger(MQTTHelper.class);
     private static final String REGISTER_SUBSCRIBE_PREFIX = "sr/";
@@ -173,7 +173,7 @@ public class MQTTHelper extends AbstractVerticle {
                 }
             });
         } else {
-            subscriptionCallback.accept(deviceNotBootstrappedMessage);
+            subscriptionCallback.accept(DEVICE_NOT_BOOTSTRAPPED);
         }
     }
 

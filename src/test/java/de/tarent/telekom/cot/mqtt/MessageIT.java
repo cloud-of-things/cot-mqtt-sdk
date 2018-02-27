@@ -101,7 +101,7 @@ public class MessageIT {
             async.complete();
         }, callback -> {
             logger.info("message received");
-            assertEquals(MQTTHelper.deviceNotBootstrappedMessage, callback.toString());
+            assertEquals(MQTTHelper.DEVICE_NOT_BOOTSTRAPPED, callback.toString());
             async.complete();
         });
 
