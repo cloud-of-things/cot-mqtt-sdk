@@ -19,6 +19,9 @@ import java.util.function.Consumer;
  */
 public class MQTTHelper extends AbstractVerticle {
 
+    static final String DEVICE_NOT_BOOTSTRAPPED = "Device is not bootstrapped! Please bootstrap the device before trying to subscribe.";
+    static final String ERROR_RETRIEVING_CONFIG = "Error retrieving config!";
+
     private static final Logger logger = LoggerFactory.getLogger(MQTTHelper.class);
     private static final String REGISTER_SUBSCRIBE_PREFIX = "sr/";
     private static final String REGISTER_PUBLISH_PREFIX = "ss/";
@@ -58,17 +61,13 @@ public class MQTTHelper extends AbstractVerticle {
     }
 
     /**
-     * Deploys the {@link MQTTHelper}).
+     * Deploys the {@link MQTTHelper}.
      */
     private static void initAPI() {
-
         Vertx v = Vertx.vertx();
         helper = new MQTTHelper();
         v.deployVerticle(helper);
-
     }
-
-
 
     /**
      * Returns the {@link MQTTHelper} instance if it was created and creates a new one, returning that if it was
@@ -162,13 +161,29 @@ public class MQTTHelper extends AbstractVerticle {
             final JsonObject registeredResult = (JsonObject) h.body();
             callback.accept(registeredResult.getString("received"));
         });
-        final JsonObject msg = JsonHelper.from(prop);
-        msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-        eventBus.send("subscribe", msg, messageHandler -> {
-            if (messageHandler.succeeded()) {
-                subscriptionCallback.accept(messageHandler.result().body());
+
+        final JsonObject question = new JsonObject().put("key", "bootstrapped");
+
+        eventBus.send("config", question, r -> {
+            if (r.succeeded()) {
+                final JsonObject bootstrappedProperty = (JsonObject) r.result().body();
+                if (bootstrappedProperty != null && bootstrappedProperty.getString("bootstrapped") != null
+                    && bootstrappedProperty.getString("bootstrapped").equals("bootstrapped")) {
+
+                    final JsonObject msg = JsonHelper.from(prop);
+                    msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+                    eventBus.send("subscribe", msg, messageHandler -> {
+                        if (messageHandler.succeeded()) {
+                            subscriptionCallback.accept(messageHandler.result().body());
+                        } else {
+                            subscriptionCallback.accept(messageHandler.cause().getMessage());
+                        }
+                    });
+                } else {
+                    subscriptionCallback.accept(DEVICE_NOT_BOOTSTRAPPED);
+                }
             } else {
-                subscriptionCallback.accept(messageHandler.cause().getMessage());
+                subscriptionCallback.accept(ERROR_RETRIEVING_CONFIG);
             }
         });
     }
