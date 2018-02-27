@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
@@ -84,7 +85,7 @@ public class MessageIT {
         async.awaitSuccess(3000);
     }
 
-    //@Test
+    @Test
     public void testSubscribeToTopicNotBootstrapped(final TestContext context) {
         Properties prop = new Properties();
         prop.setProperty("user", "subscribeUser");
@@ -96,14 +97,15 @@ public class MessageIT {
         final Async async = context.async();
         helper.subscribeToTopic(deviceId, prop, back -> {
             logger.info("Back:" + back);
-            assertTrue(back.toString().contains("subscribed"));
+            assertFalse(back.toString().contains("subscribed"));
             async.complete();
         }, callback -> {
-            // Depending on how the error looks, this will have some error assertion!
+            logger.info("message received");
+            assertEquals(MQTTHelper.deviceNotBootstrappedMessage, callback.toString());
+            async.complete();
         });
 
-        // Might need this awaitSuccess to be awaitFailure or something...?
-        // async.awaitSuccess(3000);
+        async.awaitSuccess(3000);
     }
 
     @Test

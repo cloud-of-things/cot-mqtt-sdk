@@ -19,6 +19,8 @@ import java.util.function.Consumer;
  */
 public class MQTTHelper extends AbstractVerticle {
 
+    static final String deviceNotBootstrappedMessage = "Device is not bootstrapped! Please bootstrap the device before trying to subscribe.";
+
     private static final Logger logger = LoggerFactory.getLogger(MQTTHelper.class);
     private static final String REGISTER_SUBSCRIBE_PREFIX = "sr/";
     private static final String REGISTER_PUBLISH_PREFIX = "ss/";
@@ -171,7 +173,7 @@ public class MQTTHelper extends AbstractVerticle {
                 }
             });
         } else {
-            // How do I make an error happen here best? Would like something useable in tests too if possible!
+            subscriptionCallback.accept(deviceNotBootstrappedMessage);
         }
     }
 
