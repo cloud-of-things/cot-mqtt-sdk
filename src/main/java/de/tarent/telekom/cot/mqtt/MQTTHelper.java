@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 public class MQTTHelper extends AbstractVerticle {
 
     static final String DEVICE_NOT_BOOTSTRAPPED = "Device is not bootstrapped! Please bootstrap the device before trying to subscribe.";
+    static final String ERROR_RETRIEVING_CONFIG = "Error retrieving config!";
 
     private static final Logger logger = LoggerFactory.getLogger(MQTTHelper.class);
     private static final String REGISTER_SUBSCRIBE_PREFIX = "sr/";
@@ -161,20 +162,28 @@ public class MQTTHelper extends AbstractVerticle {
             callback.accept(registeredResult.getString("received"));
         });
 
-        final JsonObject msg = JsonHelper.from(prop);
+        final JsonObject question = new JsonObject().put("key", "bootstrapped");
 
-        if (msg.getString("bootstrapped").equals("bootstrapped")) {
-            msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-            eventBus.send("subscribe", msg, messageHandler -> {
-                if (messageHandler.succeeded()) {
-                    subscriptionCallback.accept(messageHandler.result().body());
+        eventBus.send("config", question, r -> {
+            if (r.succeeded()) {
+                final JsonObject bootstrappedProperty = (JsonObject) r.result().body();
+                if (bootstrappedProperty.getString("bootstrapped").equals("bootstrapped")) {
+                    final JsonObject msg = JsonHelper.from(prop);
+                    msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+                    eventBus.send("subscribe", msg, messageHandler -> {
+                        if (messageHandler.succeeded()) {
+                            subscriptionCallback.accept(messageHandler.result().body());
+                        } else {
+                            subscriptionCallback.accept(messageHandler.cause().getMessage());
+                        }
+                    });
                 } else {
-                    subscriptionCallback.accept(messageHandler.cause().getMessage());
+                    subscriptionCallback.accept(DEVICE_NOT_BOOTSTRAPPED);
                 }
-            });
-        } else {
-            subscriptionCallback.accept(DEVICE_NOT_BOOTSTRAPPED);
-        }
+            } else {
+                subscriptionCallback.accept(ERROR_RETRIEVING_CONFIG);
+            }
+        });
     }
 
     /**
