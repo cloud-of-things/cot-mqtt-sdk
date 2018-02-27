@@ -36,7 +36,8 @@ public class MQTTHelper extends AbstractVerticle {
     final List<String> deploymentIds = new ArrayList<>();
 
     public static void main(String[] arg) {
-        initAPI();
+        Vertx v = Vertx.vertx();
+        initAPI(v);
     }
 
     @Override
@@ -63,8 +64,7 @@ public class MQTTHelper extends AbstractVerticle {
     /**
      * Deploys the {@link MQTTHelper}.
      */
-    private static void initAPI() {
-        Vertx v = Vertx.vertx();
+    private static void initAPI(Vertx v) {
         helper = new MQTTHelper();
         v.deployVerticle(helper);
     }
@@ -77,7 +77,22 @@ public class MQTTHelper extends AbstractVerticle {
      */
     public static MQTTHelper getInstance() {
         if (helper == null) {
-            initAPI();
+            Vertx v = Vertx.vertx();
+            initAPI(v);
+        }
+
+        return helper;
+    }
+
+    /**
+     * Returns the {@link MQTTHelper} instance if it was created and creates a new one, returning that if it was
+     * null.
+     * @param v -Vertx instance - to use if consumer is an vertx.io application itself
+     * @return the {@link MQTTHelper} instance
+     */
+    public static MQTTHelper getInstance(Vertx v) {
+        if (helper == null) {
+            initAPI(v);
         }
 
         return helper;
