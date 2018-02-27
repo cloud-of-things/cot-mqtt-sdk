@@ -170,7 +170,7 @@ public class MQTTHelper extends AbstractVerticle {
             	JsonObject o = (JsonObject)messageHandler.result().body();
                 subscriptionCallback.accept(o.getBoolean("subscribed"));
             } else {
-            		logger.error(messageHandler.cause().getMessage(), messageHandler.cause());
+                logger.error(messageHandler.cause().getMessage(), messageHandler.cause());
                 subscriptionCallback.accept(false);
             }
         });
@@ -191,10 +191,10 @@ public class MQTTHelper extends AbstractVerticle {
         msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
         eventBus.send("unsubscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
-            		JsonObject o = (JsonObject) messageHandler.result().body();
+                JsonObject o = (JsonObject) messageHandler.result().body();
                 unsubscriptionCallback.accept(o.getBoolean("unsubscribed"));
             } else {
-            		logger.error(messageHandler.cause().getMessage(), messageHandler.cause());
+                logger.error(messageHandler.cause().getMessage(), messageHandler.cause());
                 unsubscriptionCallback.accept(false);
             }
         });
