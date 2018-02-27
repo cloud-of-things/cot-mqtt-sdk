@@ -55,11 +55,11 @@ public class MessageIT {
         final Async async = context.async();
         helper.publishMessage(deviceId, message, prop, back -> {
             logger.info("Back: " + back);
-            assertTrue(back.toString().contains("published"));
+            context.assertTrue((boolean) back);
             async.complete();
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(4000);
     }
 
     @Test
@@ -80,7 +80,7 @@ public class MessageIT {
         final Async async = context.async();
         helper.subscribeToTopic(deviceId, prop, back -> {
             logger.info("Back: " + back);
-            assertTrue(back.toString().contains("subscribed"));
+            context.assertTrue((boolean) back);
             async.complete();
         }, callback -> {
             logger.info("message received");//receive message not yet realized in Helper classes, so not tested yet
@@ -156,8 +156,8 @@ public class MessageIT {
         final String deviceId = "testDevice";
         final Async async = context.async();
         helper.unsubscribeFromTopic(deviceId, prop, back -> {
-            logger.info("Back: " + back);
-            assertTrue(back.toString().contains("unsubscribed"));
+            logger.info("Back:" + back);
+            context.assertTrue((boolean) back);
             async.complete();
         });
 
