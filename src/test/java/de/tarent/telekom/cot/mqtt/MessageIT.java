@@ -67,6 +67,7 @@ public class MessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
+        prop.setProperty("bootstrapped", "bootstrapped");
         final String deviceId = "testDevice";
         final Async async = context.async();
         helper.subscribeToTopic(deviceId, prop, back -> {
@@ -81,6 +82,28 @@ public class MessageIT {
         });
 
         async.awaitSuccess(3000);
+    }
+
+    //@Test
+    public void testSubscribeToTopicNotBootstrapped(final TestContext context) {
+        Properties prop = new Properties();
+        prop.setProperty("user", "subscribeUser");
+        prop.setProperty("password", "somePassword");
+        prop.setProperty("brokerURI", "localhost");
+        prop.setProperty("brokerPort", "11883");
+        prop.setProperty("bootstrapped", "notBootstrapped");
+        final String deviceId = "testDevice";
+        final Async async = context.async();
+        helper.subscribeToTopic(deviceId, prop, back -> {
+            logger.info("Back:" + back);
+            assertTrue(back.toString().contains("subscribed"));
+            async.complete();
+        }, callback -> {
+            // Depending on how the error looks, this will have some error assertion!
+        });
+
+        // Might need this awaitSuccess to be awaitFailure or something...?
+        // async.awaitSuccess(3000);
     }
 
     @Test

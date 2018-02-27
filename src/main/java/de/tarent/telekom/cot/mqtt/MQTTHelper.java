@@ -58,17 +58,13 @@ public class MQTTHelper extends AbstractVerticle {
     }
 
     /**
-     * Deploys the {@link MQTTHelper}).
+     * Deploys the {@link MQTTHelper}.
      */
     private static void initAPI() {
-
         Vertx v = Vertx.vertx();
         helper = new MQTTHelper();
         v.deployVerticle(helper);
-
     }
-
-
 
     /**
      * Returns the {@link MQTTHelper} instance if it was created and creates a new one, returning that if it was
@@ -162,15 +158,21 @@ public class MQTTHelper extends AbstractVerticle {
             final JsonObject registeredResult = (JsonObject) h.body();
             callback.accept(registeredResult.getString("received"));
         });
+
         final JsonObject msg = JsonHelper.from(prop);
-        msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-        eventBus.send("subscribe", msg, messageHandler -> {
-            if (messageHandler.succeeded()) {
-                subscriptionCallback.accept(messageHandler.result().body());
-            } else {
-                subscriptionCallback.accept(messageHandler.cause().getMessage());
-            }
-        });
+
+        if (msg.getString("bootstrapped").equals("bootstrapped")) {
+            msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+            eventBus.send("subscribe", msg, messageHandler -> {
+                if (messageHandler.succeeded()) {
+                    subscriptionCallback.accept(messageHandler.result().body());
+                } else {
+                    subscriptionCallback.accept(messageHandler.cause().getMessage());
+                }
+            });
+        } else {
+            // How do I make an error happen here best? Would like something useable in tests too if possible!
+        }
     }
 
     /**
