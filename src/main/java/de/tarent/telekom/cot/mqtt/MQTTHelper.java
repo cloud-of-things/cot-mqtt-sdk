@@ -167,7 +167,9 @@ public class MQTTHelper extends AbstractVerticle {
         eventBus.send("config", question, r -> {
             if (r.succeeded()) {
                 final JsonObject bootstrappedProperty = (JsonObject) r.result().body();
-                if (bootstrappedProperty.getString("bootstrapped").equals("bootstrapped")) {
+                if (bootstrappedProperty != null && bootstrappedProperty.getString("bootstrapped") != null
+                    && bootstrappedProperty.getString("bootstrapped").equals("bootstrapped")) {
+
                     final JsonObject msg = JsonHelper.from(prop);
                     msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
                     eventBus.send("subscribe", msg, messageHandler -> {
