@@ -8,7 +8,6 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -24,7 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Properties;
-import java.util.Set;
+
+import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.ONGOING;
 
 @RunWith(VertxUnitRunner.class)
 public class BootstrapIT {
@@ -109,7 +109,7 @@ public class BootstrapIT {
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
         prop.setProperty("secret", "1234567890abcdef");
-        prop.setProperty("bootstrapped", "ongoing");
+        prop.setProperty("bootstrapped", ONGOING.name());
         String devId = "testDevice";
         JsonObject conf = JsonHelper.from(prop);
         EventBus eb = helper.getVertx().eventBus();

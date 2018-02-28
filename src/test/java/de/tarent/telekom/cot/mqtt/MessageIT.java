@@ -18,21 +18,22 @@ import org.junit.runner.RunWith;
 
 import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
+import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.NOT_STARTED;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(VertxUnitRunner.class)
 public class MessageIT {
 
     static Logger logger = LoggerFactory.getLogger(MessageIT.class);
     static MQTTHelper helper;
-    static MQTTTestServer server;
-    static MQTTTestClient client;
 
 
     @BeforeClass
     public static void beforeClass() {
-        Vertx vc = Vertx.vertx();
-        MQTTTestServer server = new MQTTTestServer();
+        final Vertx vc = Vertx.vertx();
+        final MQTTTestServer server = new MQTTTestServer();
         vc.deployVerticle(server, h-> {
             if (h.succeeded()){
                 MQTTTestClient client = new MQTTTestClient(false);
@@ -69,7 +70,7 @@ public class MessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
-        prop.setProperty("bootstrapped", "bootstrapped");
+        prop.setProperty("bootstrapped", BOOTSTRAPPED.name());
 
         // Add the properties to the config so that the bootstrapped value is set
         JsonObject conf = JsonHelper.from(prop);
@@ -99,7 +100,7 @@ public class MessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
-        prop.setProperty("bootstrapped", "notBootstrapped");
+        prop.setProperty("bootstrapped", NOT_STARTED.name());
 
         // Add the properties to the config so that the bootstrapped value is set
         JsonObject conf = JsonHelper.from(prop);

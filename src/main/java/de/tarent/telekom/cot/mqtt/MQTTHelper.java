@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
 
+import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
+
 /**
  * Helper class that starts our {@link io.vertx.core.Verticle}s and offers various methods for registering devices
  * and publishing messages on topics.
@@ -183,7 +185,7 @@ public class MQTTHelper extends AbstractVerticle {
             if (r.succeeded()) {
                 final JsonObject bootstrappedProperty = (JsonObject) r.result().body();
                 if (bootstrappedProperty != null && bootstrappedProperty.getString("bootstrapped") != null
-                    && bootstrappedProperty.getString("bootstrapped").equals("bootstrapped")) {
+                    && BOOTSTRAPPED.name().equals(bootstrappedProperty.getString("bootstrapped"))) {
 
                     final JsonObject msg = JsonHelper.from(prop);
                     msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
