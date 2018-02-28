@@ -1,8 +1,8 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
     id "net.linguica.maven-settings" version "0.5"
+    id 'maven'
 }
 
 ext {
@@ -73,14 +73,7 @@ dependencies {
     testCompile "junit:junit:$junitVersion"
 }
 
-mainClassName = 'de.tarent.telekom.cot.mqtt.nbiot-mqtt-api.MainVerticle'
-
-shadowJar {
-    classifier = 'fat'
-    mergeServiceFiles {
-        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
-    }
-}
+mainClassName = 'de.tarent.telekom.cot.mqtt.MQTTHelper'
 
 run {
     args = ['run', mainClassName, "--launcher-class=io.vertx.core.Launcher"]
@@ -88,4 +81,19 @@ run {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.0'
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(
+                    url: "${wBenchNexusUrl}/content/repositories/nbiot-releases") {
+                authentication(userName: wBenchNexusUser, password: wBenchNexusPw)
+            }
+            snapshotRepository(
+                    url: "${wBenchNexusUrl}/content/repositories/nbiot-snapshots") {
+                authentication(userName: wBenchNexusUser, password: wBenchNexusPw)
+            }
+        }
+    }
 }
