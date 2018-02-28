@@ -13,8 +13,6 @@ Das SDK ist folgendermaßen per Maven einzubinden:
  
 Oder alternativ per Gradle auf folgendem Weg:
 `compile "de.tarent.telekom.cot:nbiot-mqtt:0.5.0-SNAPSHOT"`
-`group = de.tarent.telekom.cot` in der build.gradle einfügen
-`rootProject.name = 'nbiot-mqtt'` settings.gradle wie folgt anpassen
 
 Das Repository befindet sich hier:
 https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/
