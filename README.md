@@ -1,8 +1,8 @@
 +++API to service access to MQTT broker for bootstrapping and cot interaction 
 
-Das NBIOT-MQTT SDK ermöglicht es Devices den Bootstrap-Vorgang gegen die Cumulocity 
-und anschliessendes Subscriben und Publishen am HiveMQ durchzuführen ohne diese selbst zu implementieren. Das SDK baut
-auf Vert.x auf.
+Das NBIOT-MQTT SDK ermöglicht es Device-Entwicklern den Bootstrap-Vorgang gegen die Cumulocity 
+und anschliessendes Subscriben und Publishen am HiveMQ durchzuführen ohne diese selbst zu implementieren. 
+Das SDK baut auf Vert.x auf.
 
 Das SDK ist folgendermaßen per Maven einzubinden:
 Oder alternativ per Gradle auf folgendem Weg:
@@ -18,5 +18,8 @@ und ein Property JSON-Objekt mit entsprechenden Values für initialPassword,init
 subscribeToTopic - Erstellt eine Subscription am gewünschten Broker für das Device. Bekommt die DeviceID(ICCID) übergeben 
 und ein Property JSON-Objekt mit entsprechenden Values für Password, User, brokerPort, brokerURI.
 
-publishMessage - Veröffentlicht auf dem für das Device entsprechenden Kanal eine Message, die übergeben wird. Bekommt weiterhin
-die DeviceID(ICCID) und ein Property JSON-Objekt mit entsprechenden Values für Password, User, brokerPort, brokerURI übergeben.
+publishMessage - Veröffentlicht auf dem für das Device entsprechenden Kanal eine Message, die als Parameter übergeben wird. 
+Bekommt weiterhin die DeviceID(ICCID) und ein Property JSON-Objekt mit entsprechenden Values für Password, User, brokerPort, 
+brokerURI übergeben.
+
+Weiterhin muss allen Methoden ein Callback übergeben werden, über dass die Ergebnisse der Methoden zurückgegeben werden.
