@@ -5,8 +5,20 @@ und anschliessendes Subscriben und Publishen am HiveMQ durchzuführen ohne diese
 Das SDK baut auf Vert.x auf.
 
 Das SDK ist folgendermaßen per Maven einzubinden:
+`<dependency>
+     <groupId>de.tarent.telekom.cot</groupId>
+      <artifactId>nbiot-mqtt</artifactId>
+      <version>0.5.0-SNAPSHOT</version>
+ </dependency>`
+ 
 Oder alternativ per Gradle auf folgendem Weg:
-Das Repository befindet sich hier https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/
+`compile "de.tarent.telekom.cot:nbiot-mqtt:0.5.0-SNAPSHOT"`
+`group = de.tarent.telekom.cot` in der build.gradle einfügen
+`rootProject.name = 'nbiot-mqtt'` settings.gradle wie folgt anpassen
+
+Das Repository befindet sich hier:
+https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/
+
 
 Nachdem man das SDK in seinem Projekt eingebunden hat, kann man über die Methode getInstance() das SDK initialisieren.
 Im Falle, dass man selbst eine Vert.x-Anwendung entwickelt sollte man dieser die vertx Instanz mitgeben.
