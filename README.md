@@ -13,13 +13,13 @@ Im Falle, dass man selbst eine Vert.x-Anwendung entwickelt sollte man dieser die
 
 Folgende Methoden stehen zur Verfügung:
 registerDevice - Handelt den Bootstrapping Vorgang ab und liefert das Passwort. Bekommt die DeviceID(ICCID) übergeben 
-und ein Property JSON-Objekt mit entsprechenden Values für initialPassword,initialUser,brokerPort,brokerURI.
+und ein Property-Objekt vom Typ java.util.Properties mit entsprechenden Values für initialPassword,initialUser,brokerPort,brokerURI.
 
 subscribeToTopic - Erstellt eine Subscription am gewünschten Broker für das Device. Bekommt die DeviceID(ICCID) übergeben 
-und ein Property JSON-Objekt mit entsprechenden Values für Password, User, brokerPort, brokerURI.
+und ein Property-Objekt vom Typ java.util.Properties mit entsprechenden Values für Password, User, brokerPort, brokerURI.
 
 publishMessage - Veröffentlicht auf dem für das Device entsprechenden Kanal eine Message, die als Parameter übergeben wird. 
-Bekommt weiterhin die DeviceID(ICCID) und ein Property JSON-Objekt mit entsprechenden Values für Password, User, brokerPort, 
+Bekommt weiterhin die DeviceID(ICCID) und ein Property-Objekt vom Typ java.util.Properties mit entsprechenden Values für Password, User, brokerPort, 
 brokerURI übergeben.
 
 Weiterhin muss allen Methoden ein Callback übergeben werden, über dass die Ergebnisse der Methoden zurückgegeben werden.
