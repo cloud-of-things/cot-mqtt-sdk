@@ -7,17 +7,7 @@ package de.tarent.telekom.cot.mqtt.util;
  *  3. "bootstrapped" (Bootstrapping process was completed, and a secret is available)
  */
 public enum Bootstrapped {
-    NOT_STARTED("notStarted"),
-    ONGOING("ongoing"),
-    BOOTSTRAPPED("bootstrapped");
-
-    private String status;
-
-    Bootstrapped(final String status) {
-        this.status = status;
-    }
-
-    public String getStatus() {
-        return status;
-    }
+    NOT_STARTED,
+    ONGOING,
+    BOOTSTRAPPED
 }

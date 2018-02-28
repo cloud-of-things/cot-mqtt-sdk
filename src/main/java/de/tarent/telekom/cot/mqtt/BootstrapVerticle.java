@@ -55,7 +55,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                     setPublishHandler(msg, newSecret);
                     LOGGER.info("no bootstrapping request sent. connect and publish.");
                     connectAndPublish(msg, newSecret);
-                } else if (bootstrapped.equals(ONGOING.getStatus())) {
+                } else if (bootstrapped.equals(ONGOING)) {
                     setPublishHandler(msg, secret);
                     LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
                     final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -76,7 +76,7 @@ public class BootstrapVerticle extends AbstractVerticle {
         final JsonObject params = new JsonObject().put("keys",
             new JsonArray()
                 .add(new JsonObject().put("key", "secret"))
-                .add(new JsonObject().put("key", BOOTSTRAPPED.getStatus())));
+                .add(new JsonObject().put("key", BOOTSTRAPPED)));
 
         eb.send("config", params, result -> {
             if (result.succeeded()) {
@@ -108,7 +108,7 @@ public class BootstrapVerticle extends AbstractVerticle {
 
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
-                bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED.getStatus());
+                bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
                 eb.publish("setConfig", bootStrapDoneMessage);
             }
         });
@@ -132,7 +132,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                     s -> {
                         LOGGER.info("Publish sent to a server");
                         //write to config that bootstrap process has started
-                        configParams.put("bootstrapped", ONGOING.getStatus());
+                        configParams.put("bootstrapped", ONGOING);
                         configParams.put("secret", secret);
                         eb.publish("setConfig", configParams);
                     });

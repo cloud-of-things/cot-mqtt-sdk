@@ -70,7 +70,7 @@ public class MessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
-        prop.setProperty("bootstrapped", BOOTSTRAPPED.getStatus());
+        prop.setProperty("bootstrapped", BOOTSTRAPPED.name());
 
         // Add the properties to the config so that the bootstrapped value is set
         JsonObject conf = JsonHelper.from(prop);
@@ -100,7 +100,7 @@ public class MessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
-        prop.setProperty("bootstrapped", NOT_STARTED.getStatus());
+        prop.setProperty("bootstrapped", NOT_STARTED.name());
 
         // Add the properties to the config so that the bootstrapped value is set
         JsonObject conf = JsonHelper.from(prop);

@@ -109,7 +109,7 @@ public class BootstrapIT {
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
         prop.setProperty("secret", "1234567890abcdef");
-        prop.setProperty("bootstrapped", ONGOING.getStatus());
+        prop.setProperty("bootstrapped", ONGOING.name());
         String devId = "testDevice";
         JsonObject conf = JsonHelper.from(prop);
         EventBus eb = helper.getVertx().eventBus();

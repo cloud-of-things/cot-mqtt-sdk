@@ -185,7 +185,7 @@ public class MQTTHelper extends AbstractVerticle {
             if (r.succeeded()) {
                 final JsonObject bootstrappedProperty = (JsonObject) r.result().body();
                 if (bootstrappedProperty != null && bootstrappedProperty.getString("bootstrapped") != null
-                    && BOOTSTRAPPED.getStatus().equals(bootstrappedProperty.getString("bootstrapped"))) {
+                    && BOOTSTRAPPED.name().equals(bootstrappedProperty.getString("bootstrapped"))) {
 
                     final JsonObject msg = JsonHelper.from(prop);
                     msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
