@@ -1,9 +1,12 @@
 package de.tarent.telekom.cot.mqtt;
 
 
+import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import de.tarent.telekom.cot.mqtt.util.MQTTTestClient;
 import de.tarent.telekom.cot.mqtt.util.MQTTTestServer;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;
@@ -15,16 +18,14 @@ import org.junit.runner.RunWith;
 
 import java.util.Properties;
 
+import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
 public class VertxMessageIT {
 
     static Logger logger = LoggerFactory.getLogger(VertxMessageIT.class);
     static MQTTHelper helper;
-    static MQTTTestServer server;
-    static MQTTTestClient client;
 
 
     @BeforeClass
@@ -53,7 +54,7 @@ public class VertxMessageIT {
         final Async async = context.async();
         helper.publishMessage(deviceId, message, prop, back -> {
             logger.info("Back:" + back);
-            assertTrue(back.toString().contains("published"));
+            context.assertTrue((boolean) back);
             async.complete();
         });
 
@@ -67,11 +68,19 @@ public class VertxMessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
+        prop.setProperty("bootstrapped", BOOTSTRAPPED.name());
+
+        // Add the properties to the config so that the bootstrapped value is set
+        final JsonObject conf = JsonHelper.from(prop);
+        final EventBus eb = helper.getVertx().eventBus();
+        eb.publish("setConfig", conf);
+
         final String deviceId = "testDevice";
         final Async async = context.async();
         helper.subscribeToTopic(deviceId, prop, back -> {
             logger.info("Back:" + back);
-            assertTrue(back.toString().contains("subscribed"));
+            System.out.println(back);
+            context.assertTrue((boolean) back);
             async.complete();
         }, callback -> {
             logger.info("message received");//receive message not yet realized in Helper classes, so not tested yet
@@ -94,7 +103,7 @@ public class VertxMessageIT {
         final Async async = context.async();
         helper.unsubscribeFromTopic(deviceId, prop, back -> {
             logger.info("Back:" + back);
-            assertTrue(back.toString().contains("unsubscribed"));
+            context.assertTrue((boolean) back);
             async.complete();
         });
 
