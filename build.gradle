@@ -49,6 +49,7 @@ repositories {
     maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/nbiot-snapshots" }
 }
 
+group = 'de.tarent.telekom.cot'
 version = '0.5.0-SNAPSHOT'
 sourceCompatibility = '1.8'
 
