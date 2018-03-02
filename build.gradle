@@ -43,7 +43,7 @@ repositories {
     mavenLocal()
     jcenter()
     maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/gradle.org/" }
-    maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/public" }
+    maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/groups/public" }
     maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/2ndparty" }
     maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/snapshots" }
     maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/nbiot-releases" }
