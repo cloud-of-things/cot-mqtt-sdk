@@ -27,7 +27,6 @@ public class EncryptionHelper {
      * @param secret that is used for the encryption, can only be 16 byte long.
      * @param data   to be encrypted, the length is arbitrary.
      * @return the data after it is encrypted, in byte array type.
-     * @throws IllegalArgumentException
      */
     @Nonnull
     public byte[] encrypt(@Nonnull final Secret secret, @Nonnull final byte[] data) {
