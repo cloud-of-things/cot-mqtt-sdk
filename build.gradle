@@ -3,7 +3,7 @@ plugins {
     id 'application'
     id "net.linguica.maven-settings" version "0.5"
     id 'maven'
-//    id 'net.researchgate.release' version '2.6.0'
+    id 'net.researchgate.release' version '2.6.0'
 }
 
 ext {
