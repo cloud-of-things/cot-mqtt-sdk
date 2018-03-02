@@ -42,12 +42,11 @@ repositories {
     mavenCentral()
     mavenLocal()
     jcenter()
-    maven { url "https://plugins.gradle.org/m2/" }
-    maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/public" }
-    maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/2ndparty" }
-    maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/snapshots" }
-    maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/nbiot-releases" }
-    maven { url "https://infinity-wbench.wesp.telekom.net/nexus/content/repositories/nbiot-snapshots" }
+    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/public" }
+    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/2ndparty" }
+    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/snapshots" }
+    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/nbiot-releases" }
+    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/nbiot-snapshots" }
 }
 
 group = 'de.tarent.telekom.cot'
