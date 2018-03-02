@@ -29,7 +29,6 @@ public class MessageIT {
     static Logger logger = LoggerFactory.getLogger(MessageIT.class);
     static MQTTHelper helper;
 
-
     @BeforeClass
     public static void beforeClass() {
         final Vertx vc = Vertx.vertx();
