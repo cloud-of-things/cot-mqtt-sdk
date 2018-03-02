@@ -116,7 +116,7 @@ public class MQTTHelper extends AbstractVerticle {
      * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
      * @param callback the callback function to receive the created credentials
      */
-    public void registerDevice(final String deviceId, final Properties prop, final Consumer callback) {
+    public void registerDevice(final String deviceId, final Properties prop, final Consumer<String> callback) {
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
@@ -144,7 +144,7 @@ public class MQTTHelper extends AbstractVerticle {
      * @param callback the callback function to receive the created credentials
      */
     public void publishMessage(final String deviceId, final String message, final Properties prop,
-        final Consumer callback) {
+        final Consumer<Boolean> callback) {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
@@ -170,8 +170,8 @@ public class MQTTHelper extends AbstractVerticle {
      * @param subscriptionCallback the callback to check if subscription is successful (needed for integration tests)
      * @param callback             the callback function to receive the messages
      */
-    public void subscribeToTopic(final String deviceId, final Properties prop, final Consumer subscriptionCallback,
-        final Consumer callback) {
+    public void subscribeToTopic(final String deviceId, final Properties prop, final Consumer<Object> subscriptionCallback,
+        final Consumer<String> callback) {
 
         final EventBus eventBus = vertx.eventBus();
         eventBus.consumer("received", h -> {
@@ -214,8 +214,7 @@ public class MQTTHelper extends AbstractVerticle {
      * @param prop                   the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
      * @param unsubscriptionCallback the callback to check if unsubscription is successful (needed for integration tests)
      */
-    public void unsubscribeFromTopic(final String deviceId, final Properties prop,
-        final Consumer unsubscriptionCallback) {
+    public void unsubscribeFromTopic(final String deviceId, final Properties prop, final Consumer<Boolean> unsubscriptionCallback) {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
