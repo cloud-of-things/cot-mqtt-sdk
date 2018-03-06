@@ -1,6 +1,7 @@
 package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.JsonHelper;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
@@ -113,7 +114,7 @@ public class MQTTHelper extends AbstractVerticle {
      * given callback once/if it's retrieved from the server.
      *
      * @param deviceId the iccID of the device
-     * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials, QoS...)
      * @param callback the callback function to receive the created credentials
      */
     public void registerDevice(final String deviceId, final Properties prop, final Consumer<String> callback) {
@@ -122,6 +123,10 @@ public class MQTTHelper extends AbstractVerticle {
         msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
         msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
         msg.put("deviceId", deviceId);
+
+        final String qualityOfService = getQoSValue(msg.getString("QoS"));
+        msg.put("QoS", qualityOfService);
+
         eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
@@ -140,7 +145,7 @@ public class MQTTHelper extends AbstractVerticle {
      *
      * @param deviceId the given device with which to publish the message
      * @param message  the given message which should be published
-     * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials, QoS...)
      * @param callback the callback function to receive the created credentials
      */
     public void publishMessage(final String deviceId, final String message, final Properties prop,
@@ -151,6 +156,10 @@ public class MQTTHelper extends AbstractVerticle {
         eventBus.publish("setConfig", msg);
         msg.put("publishTopic", MESSAGE_PUBLISH_PREFIX + deviceId);
         msg.put("message", message);
+
+        final String qualityOfService = getQoSValue(msg.getString("QoS"));
+        msg.put("QoS", qualityOfService);
+
         eventBus.send("publish", msg, result -> {
             if (result.succeeded()) {
                 final JsonObject registeredResult = (JsonObject) result.result().body();
@@ -166,7 +175,7 @@ public class MQTTHelper extends AbstractVerticle {
      * Subscribes to a given topic with the given {@link Properties}.
      *
      * @param deviceId             the given device with which to subscribe to a topic
-     * @param prop                 the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param prop                 the {@link Properties} contains connection parameters (Eg. URI, port, credentials, QoS...)
      * @param subscriptionCallback the callback to check if subscription is successful (needed for integration tests)
      * @param callback             the callback function to receive the messages
      */
@@ -189,6 +198,10 @@ public class MQTTHelper extends AbstractVerticle {
 
                     final JsonObject msg = JsonHelper.from(prop);
                     msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+
+                    final String qualityOfService = getQoSValue(msg.getString("QoS"));
+                    msg.put("QoS", qualityOfService);
+
                     eventBus.send("subscribe", msg, messageHandler -> {
                         if (messageHandler.succeeded()) {
                             final JsonObject o = (JsonObject)messageHandler.result().body();
@@ -211,7 +224,7 @@ public class MQTTHelper extends AbstractVerticle {
      * Unsubscribes to a given topic with the given {@link Properties}.
      *
      * @param deviceId               the given device with which to unsubscribe to a topic
-     * @param prop                   the {@link Properties} contains connection parameters (Eg. URI, port, credentials...)
+     * @param prop                   the {@link Properties} contains connection parameters (Eg. URI, port, credentials, QoS...)
      * @param unsubscriptionCallback the callback to check if unsubscription is successful (needed for integration tests)
      */
     public void unsubscribeFromTopic(final String deviceId, final Properties prop, final Consumer<Boolean> unsubscriptionCallback) {
@@ -219,6 +232,10 @@ public class MQTTHelper extends AbstractVerticle {
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+
+        final String qualityOfService = getQoSValue(msg.getString("QoS"));
+        msg.put("QoS", qualityOfService);
+
         eventBus.send("unsubscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
             		JsonObject o = (JsonObject) messageHandler.result().body();
@@ -228,5 +245,17 @@ public class MQTTHelper extends AbstractVerticle {
                 unsubscriptionCallback.accept(false);
             }
         });
+    }
+
+    private String getQoSValue(final String qualityOfService) {
+        if (qualityOfService != null) {
+            for (MqttQoS mqttQoS : MqttQoS.values()) {
+                if (qualityOfService.toUpperCase().equals(mqttQoS.name())) {
+                    return qualityOfService.toUpperCase();
+                }
+            }
+        }
+
+        return MqttQoS.AT_MOST_ONCE.name();
     }
 }
