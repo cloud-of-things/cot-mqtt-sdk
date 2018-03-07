@@ -80,7 +80,7 @@ public class EncryptionHelper {
      * Prepares the data for the encryption using the PKCS7 padding method
      * (https://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7)
      *
-     * @param data, byte array that is to be padded.
+     * @param data byte array that is to be padded.
      * @return padded data, byte array
      */
     public byte[] pad(@Nonnull final byte[] data) {
