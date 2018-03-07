@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id "net.linguica.maven-settings" version "0.5"
-    id 'maven'
+    id 'maven-publish'
 //    id 'net.researchgate.release' version '2.6.0'
 }
 
@@ -42,15 +42,21 @@ repositories {
     mavenCentral()
     mavenLocal()
     jcenter()
-    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/public" }
-    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/2ndparty" }
-    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/snapshots" }
-    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/nbiot-releases" }
-    maven { url "https://infinity-wbench.psst.t-online.corp/nexus/content/repositories/nbiot-snapshots" }
+    maven { url "${wBenchNexusUrl}/content/repositories/public" }
+    maven { url "${wBenchNexusUrl}/content/repositories/2ndparty" }
+    maven { url "${wBenchNexusUrl}/content/repositories/snapshots" }
+    maven {
+        name "nbiot-releases"
+        url "${wBenchNexusUrl}/content/repositories/nbiot-releases"
+    }
+    maven {
+        name "nbiot-snapshots"
+        url "${wBenchNexusUrl}/content/repositories/nbiot-snapshots"
+    }
 }
 
 group = 'de.tarent.telekom.cot'
-version = '0.5.1-SNAPSHOT'
+version = '0.5.2-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 dependencies {
@@ -83,17 +89,19 @@ task wrapper(type: Wrapper) {
     gradleVersion = '4.0'
 }
 
-uploadArchives {
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact packageSources
+            artifact packageJavadoc
+        }
+    }
     repositories {
-        mavenDeployer {
-            repository(
-                    url: "${wBenchNexusUrl}/content/repositories/nbiot-releases") {
-                authentication(userName: wBenchNexusUser, password: wBenchNexusPw)
-            }
-            snapshotRepository(
-                    url: "${wBenchNexusUrl}/content/repositories/nbiot-snapshots") {
-                authentication(userName: wBenchNexusUser, password: wBenchNexusPw)
-            }
+        maven {
+            name "${project.version.endsWith('-SNAPSHOT') ? 'nbiot-snapshots':'nbiot-releases'}"
+            url "${wBenchNexusUrl}/content/repositories/${project.version.endsWith('-SNAPSHOT') ? 'nbiot-snapshots':'nbiot-releases'}"
         }
     }
 }
