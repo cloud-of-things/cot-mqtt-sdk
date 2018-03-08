@@ -250,7 +250,13 @@ public class MQTTHelper extends AbstractVerticle {
     }
 
     private int getQoSValue(final JsonObject msg) {
-        int qualityOfService = msg.getInteger("QoS") != null ? msg.getInteger("QoS") : 0;
+        int qualityOfService = 0;
+
+        try {
+            qualityOfService = Integer.parseInt(msg.getString("QoS"));
+        } catch (final NumberFormatException e) {
+            logger.error("Error while parsing QoS value, using default value of 0.");
+        }
 
         for (MqttQoS mqttQoS : MqttQoS.values()) {
             if (qualityOfService == mqttQoS.value()) {
