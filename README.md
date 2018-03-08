@@ -32,6 +32,6 @@ publishMessage - Veröffentlicht auf dem für das Device entsprechenden Kanal ei
 Bekommt weiterhin die DeviceID(ICCID) und ein Property-Objekt vom Typ java.util.Properties mit entsprechenden Values für Password, User, brokerPort, 
 brokerURI, QoS* übergeben.
 
-'*' QoS muss einer von folgende Werte haben: **AT_MOST_ONCE**, **AT_LEAST_ONCE**, **EXACTLY_ONCE**, oder leer gelassen werden, wenn es egal ist. 
+* QoS muss einer von folgende Werte haben:**0**(at most once),**1**(at least once),**2**(exactly once), oder leer gelassen werden, wenn es egal ist. Default ist immer**0**(at most once). 
 
 Weiterhin muss allen Methoden ein Callback übergeben werden, über dass die Ergebnisse der Methoden zurückgegeben werden.
