@@ -71,6 +71,7 @@ public class MessageIT {
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
         prop.setProperty("bootstrapped", BOOTSTRAPPED.name());
+        prop.setProperty("QoS", "2");
 
         // Add the properties to the config so that the bootstrapped value is set
         JsonObject conf = JsonHelper.from(prop);

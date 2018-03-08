@@ -62,7 +62,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                     client.connect(port, msg.getString("brokerURI"), ch -> {
                         if (ch.succeeded()) {
                             System.out.println("Connected to a server");
-                            client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_LEAST_ONCE.value());
+                            client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value());
                         }
                     });
                 }
@@ -120,13 +120,13 @@ public class BootstrapVerticle extends AbstractVerticle {
         client.connect(port, msg.getString("brokerURI"), ch -> {
             if (ch.succeeded()) {
                 System.out.println("Connected to a server");
-                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_LEAST_ONCE.value());
+                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value());
 
                 final JsonObject configParams = new JsonObject();
 
                 client.publish(msg.getValue("publishTopic").toString(),
                     Buffer.buffer(secret),
-                    MqttQoS.AT_LEAST_ONCE,
+                    MqttQoS.valueOf(msg.getInteger("QoS")),
                     false,
                     false,
                     s -> {

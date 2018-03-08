@@ -73,7 +73,7 @@ public class MessageVerticle extends AbstractVerticle {
     private void publish(final JsonObject msg, final Message handle){
         client.publish(msg.getValue("publishTopic").toString(),
                 Buffer.buffer(msg.getValue("message").toString()),
-                MqttQoS.AT_MOST_ONCE,
+                MqttQoS.valueOf(msg.getInteger("QoS")),
                 false,
                 false,
                 s -> {
@@ -147,7 +147,7 @@ public class MessageVerticle extends AbstractVerticle {
     }
 
     private void subscribe(final JsonObject msg, final Message handle) {
-        client.subscribe(msg.getString("subscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
+        client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value(),
                 s -> {
                     LOGGER.info("Subscribe call sent to a server");
                     JsonObject jso = new JsonObject().put("subscribed", true);
