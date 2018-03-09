@@ -56,7 +56,7 @@ repositories {
 }
 
 group = 'de.tarent.telekom.cot'
-version = '0.5.2-SNAPSHOT'
+version = '0.5.2-SNAPSHOT' // Don't forget to change this in the Readme.md!
 sourceCompatibility = '1.8'
 
 dependencies {
