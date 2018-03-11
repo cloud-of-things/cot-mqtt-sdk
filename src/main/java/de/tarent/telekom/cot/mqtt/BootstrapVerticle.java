@@ -2,6 +2,7 @@ package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.EncryptionHelper;
 import de.tarent.telekom.cot.mqtt.util.Secret;
+import de.tarent.telekom.cot.mqtt.util.SmartREST;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -13,6 +14,8 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
+
+import java.nio.charset.Charset;
 
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.ONGOING;
@@ -109,6 +112,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
                 bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
+                //bootStrapDoneMessage.put("password", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
             }
         });
@@ -141,4 +145,99 @@ public class BootstrapVerticle extends AbstractVerticle {
             }
         });
     }
+
+    private void createManagedObject(){
+        final Future<JsonObject> config = getConfig();
+
+        config.setHandler(s -> {
+
+                if (s.succeeded()) {
+                    JsonObject configObject = s.result();
+
+                    final String deviceId = s.result().getString("deviceId");
+                    final String password = s.result().getString("password");
+
+                    final MqttClientOptions options = new MqttClientOptions()
+                        .setPassword(password)
+                        .setUsername(deviceId)
+                        .setAutoKeepAlive(true);
+                    final int port = Integer.parseInt(configObject.getString("brokerPort"));
+                    final MqttClient MOclient = MqttClient.create(vertx, options);
+
+                    MOclient.publishHandler(h -> {
+                        LOGGER.info("Message with topic " + h.topicName() + " with QOS " + h.qosLevel().name() + " received");
+                        if (h.topicName().equals(s.result().getString("subscribeTopic"))) {
+
+                            String[] parsedPayload= SmartREST.parseResponsePayload(h.payload());
+                            //object doesnt exist
+                            if(parsedPayload[0].equals("50")&&parsedPayload[2].equals("404")){
+                                String message = SmartREST.getPayloadSelfCreationRequest("mascot-testdevices1",configObject.getString("deviceId"),"deviceName");
+                                MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
+                                    if (ch.succeeded()) {
+                                        MOPublish(MOclient, configObject.getString("publishTopic"), message);
+                                    } else {
+                                        LOGGER.error("Failed to connect to a server", ch.cause());
+                                    }
+                                });
+                            }
+                            //object already exists
+                            else if(parsedPayload[0].equals("601")){
+                                //601,1,mascot3,2817383;
+                            }
+                            //object created we
+                            if(parsedPayload[0].equals("603")){
+                                final JsonObject managedObject = new JsonObject();
+                                managedObject.put("managedObjectId", parsedPayload[2]);
+                                eb.publish("setConfig", managedObject);
+
+                                String registerICCIDString = SmartREST.getPayloadRegisterICCIDasExternalId("mascot-testdevices1",parsedPayload[2],configObject.getString("deviceId"));
+                                MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
+                                    if (ch.succeeded()) {
+                                        MOPublish(MOclient, configObject.getString("publishTopic"), registerICCIDString);
+                                    } else {
+                                        LOGGER.error("Failed to connect to a server", ch.cause());
+                                    }
+                                });
+
+                                String updateOperationsString = SmartREST.getPayloadUpdateOperations("mascot-testdevices1",parsedPayload[2]);
+                                MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
+                                    if (ch.succeeded()) {
+                                        MOPublish(MOclient, configObject.getString("publishTopic"), updateOperationsString);
+                                    } else {
+                                        LOGGER.error("Failed to connect to a server", ch.cause());
+                                    }
+                                });
+                            }
+                            String message = h.payload().toString();
+                            JsonObject toCallBack = new JsonObject().put("received", message);
+                            eb.publish("received", toCallBack);
+                        }
+                    });
+
+                    MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
+                        if (ch.succeeded()) {
+                            LOGGER.info("Connected to a server");
+                            MOclient.subscribe(configObject.getString("subscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
+                                d -> {});
+                            MOPublish(MOclient,configObject.getValue("publishTopic").toString(),SmartREST.getPayloadCheckManagedObject("mascot-testdevices1", s.result().getString("deviceId")));
+                        } else {
+                            LOGGER.error("Failed to connect to a server", ch.cause());
+                        }
+                    });
+            }
+        });
+
+    }
+
+    private void MOPublish(MqttClient client, String topic, String message){
+        client.publish(
+            topic,
+            Buffer.buffer(message),
+            MqttQoS.AT_MOST_ONCE,
+            false,
+            false,
+            k -> {}
+        );
+    }
+
 }
