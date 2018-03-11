@@ -207,10 +207,8 @@ public class BootstrapVerticle extends AbstractVerticle {
                                         LOGGER.error("Failed to connect to a server", ch.cause());
                                     }
                                 });
+                                MOclient.unsubscribe(configObject.getString("subscribeTopic"));
                             }
-                            String message = h.payload().toString();
-                            JsonObject toCallBack = new JsonObject().put("received", message);
-                            eb.publish("received", toCallBack);
                         }
                     });
 
@@ -219,7 +217,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                             LOGGER.info("Connected to a server");
                             MOclient.subscribe(configObject.getString("subscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
                                 d -> {});
-                            MOPublish(MOclient,configObject.getValue("publishTopic").toString(),SmartREST.getPayloadCheckManagedObject("mascot-testdevices1", s.result().getString("deviceId")));
+                            MOPublish(MOclient, configObject.getString("publishTopic"),SmartREST.getPayloadCheckManagedObject("mascot-testdevices1", s.result().getString("deviceId")));
                         } else {
                             LOGGER.error("Failed to connect to a server", ch.cause());
                         }
