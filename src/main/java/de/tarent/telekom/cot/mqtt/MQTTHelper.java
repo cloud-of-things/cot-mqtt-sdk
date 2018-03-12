@@ -29,6 +29,7 @@ public class MQTTHelper extends AbstractVerticle {
     private static final String REGISTER_PUBLISH_PREFIX = "ss/";
     private static final String MESSAGE_SUBSCRIBE_PREFIX = "mr/";
     private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
+    private static final String SMARTREST_XID = "mascot-testdevice1";
     private static MQTTHelper helper;
 
     final Configuration config = new Configuration();
