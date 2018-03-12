@@ -114,6 +114,8 @@ public class BootstrapVerticle extends AbstractVerticle {
                 bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
                 bootStrapDoneMessage.put("cloudPassword", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
+
+                createManagedObject();
             }
         });
     }
@@ -171,14 +173,8 @@ public class BootstrapVerticle extends AbstractVerticle {
                             String[] parsedPayload= SmartREST.parseResponsePayload(h.payload());
                             //object doesnt exist
                             if(parsedPayload[0].equals("50")&&parsedPayload[2].equals("404")){
-                                String message = SmartREST.getPayloadSelfCreationRequest("mascot-testdevices1",configObject.getString("deviceId"),"deviceName");
-                                MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
-                                    if (ch.succeeded()) {
-                                        MOPublish(MOclient, configObject.getString("publishTopic"), message);
-                                    } else {
-                                        LOGGER.error("Failed to connect to a server", ch.cause());
-                                    }
-                                });
+                                String message = SmartREST.getPayloadSelfCreationRequest(configObject.getString("xId"),configObject.getString("deviceId"),"deviceName");
+                                MOPublish(MOclient, configObject.getString("publishTopic"), message);
                             }
                             //object already exists
                             else if(parsedPayload[0].equals("601")){
@@ -190,24 +186,12 @@ public class BootstrapVerticle extends AbstractVerticle {
                                 managedObject.put("managedObjectId", parsedPayload[2]);
                                 eb.publish("setConfig", managedObject);
 
-                                String registerICCIDString = SmartREST.getPayloadRegisterICCIDasExternalId("mascot-testdevices1",parsedPayload[2],configObject.getString("deviceId"));
-                                MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
-                                    if (ch.succeeded()) {
-                                        MOPublish(MOclient, configObject.getString("publishTopic"), registerICCIDString);
-                                    } else {
-                                        LOGGER.error("Failed to connect to a server", ch.cause());
-                                    }
-                                });
-
-                                String updateOperationsString = SmartREST.getPayloadUpdateOperations("mascot-testdevices1",parsedPayload[2]);
-                                MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
-                                    if (ch.succeeded()) {
-                                        MOPublish(MOclient, configObject.getString("publishTopic"), updateOperationsString);
-                                    } else {
-                                        LOGGER.error("Failed to connect to a server", ch.cause());
-                                    }
-                                });
+                                String registerICCIDString = SmartREST.getPayloadRegisterICCIDasExternalId(configObject.getString("xId"),parsedPayload[2],configObject.getString("deviceId"));
+                                MOPublish(MOclient, configObject.getString("publishTopic"), registerICCIDString);
+                                String updateOperationsString = SmartREST.getPayloadUpdateOperations(configObject.getString("xId"),parsedPayload[2]);
+                                MOPublish(MOclient, configObject.getString("publishTopic"), updateOperationsString);
                                 MOclient.unsubscribe(configObject.getString("subscribeTopic"));
+                                MOclient.disconnect();
                             }
                         }
                     });

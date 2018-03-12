@@ -29,7 +29,7 @@ public class MQTTHelper extends AbstractVerticle {
     private static final String REGISTER_PUBLISH_PREFIX = "ss/";
     private static final String MESSAGE_SUBSCRIBE_PREFIX = "mr/";
     private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
-    private static final String SMARTREST_XID = "mascot-testdevice1";
+    private static final String SMARTREST_XID = "mascot-testdevices1";
     private static MQTTHelper helper;
 
     final Configuration config = new Configuration();
@@ -123,6 +123,7 @@ public class MQTTHelper extends AbstractVerticle {
         msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
         msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
         msg.put("deviceId", deviceId);
+        msg.put("xId", SMARTREST_XID);
         eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
