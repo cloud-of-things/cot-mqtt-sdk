@@ -112,7 +112,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
                 bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
-                //bootStrapDoneMessage.put("password", new String(pass));
+                bootStrapDoneMessage.put("cloudPassword", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
             }
         });
@@ -155,7 +155,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                     JsonObject configObject = s.result();
 
                     final String deviceId = s.result().getString("deviceId");
-                    final String password = s.result().getString("password");
+                    final String password = s.result().getString("cloudPassword");
 
                     final MqttClientOptions options = new MqttClientOptions()
                         .setPassword(password)
