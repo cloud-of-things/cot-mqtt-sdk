@@ -18,7 +18,7 @@ import java.util.Set;
 public class SystemTest {
 
     final static String MQTT_BROKER_HOST = "nb-iot.int2-ram.m2m.telekom.com";
-    final static String MQTT_BROKER_PORT = "1883";
+    final static String MQTT_BROKER_PORT = "8883";
     final static String BOOTSTRAP_USER = "devicebootstrap";
     final static String BOOTSTRAP_PASSWORD = "Fhdt1bb1f";
     final static String BOOTSTRAP_KEY = "bootstrapkey1234";

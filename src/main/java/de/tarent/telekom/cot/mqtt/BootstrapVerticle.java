@@ -12,10 +12,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
-
-import java.nio.charset.Charset;
 
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.ONGOING;
@@ -44,7 +43,9 @@ public class BootstrapVerticle extends AbstractVerticle {
         final MqttClientOptions options = new MqttClientOptions()
             .setPassword(msg.getString("initialPassword"))
             .setUsername(msg.getString("initialUser"))
-            .setAutoKeepAlive(true);
+            .setAutoKeepAlive(true)
+            .setSsl(true)
+            .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
         client = MqttClient.create(vertx, options);
 
         config.setHandler(s -> {
@@ -162,7 +163,9 @@ public class BootstrapVerticle extends AbstractVerticle {
                     final MqttClientOptions options = new MqttClientOptions()
                         .setPassword(password)
                         .setUsername(deviceId)
-                        .setAutoKeepAlive(true);
+                        .setAutoKeepAlive(true)
+                        .setSsl(true)
+                        .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
                     final int port = Integer.parseInt(configObject.getString("brokerPort"));
                     final MqttClient MOclient = MqttClient.create(vertx, options);
 

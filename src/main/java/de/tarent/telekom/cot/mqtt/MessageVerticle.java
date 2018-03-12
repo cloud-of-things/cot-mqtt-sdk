@@ -8,6 +8,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
@@ -48,7 +49,9 @@ public class MessageVerticle extends AbstractVerticle {
         final MqttClientOptions options = new MqttClientOptions()
                 .setPassword(msg.getString("password"))
                 .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true);
+                .setAutoKeepAlive(true)
+                .setSsl(true)
+                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
 
         //connect and publish on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -87,7 +90,9 @@ public class MessageVerticle extends AbstractVerticle {
         final MqttClientOptions options = new MqttClientOptions()
                 .setPassword(msg.getString("password"))
                 .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true);
+                .setAutoKeepAlive(true)
+                .setSsl(true)
+                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
 
         //connect and subscribe on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -123,7 +128,9 @@ public class MessageVerticle extends AbstractVerticle {
         final MqttClientOptions options = new MqttClientOptions()
                 .setPassword(msg.getString("password"))
                 .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true);
+                .setAutoKeepAlive(true)
+                .setSsl(true)
+                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
 
         //connect and subscribe on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
