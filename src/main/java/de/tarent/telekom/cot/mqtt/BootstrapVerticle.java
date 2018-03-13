@@ -183,6 +183,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                             else if(parsedPayload[0].equals("601")){
                                 //601,1,mascot3,2817383;
                                 //what to do when object for iccid already exists?
+                                
                             }
                             //object created we
                             if(parsedPayload[0].equals("603")){
