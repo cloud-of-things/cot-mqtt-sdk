@@ -1,6 +1,9 @@
 package de.tarent.telekom.cot.mqtt;
 
+import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;
@@ -13,6 +16,8 @@ import org.junit.runner.RunWith;
 
 import java.util.Properties;
 import java.util.Set;
+
+import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
 
 @RunWith(VertxUnitRunner.class)
 public class SystemTest {
@@ -36,7 +41,7 @@ public class SystemTest {
     final static String KEY_MSG_USER = "user";
     final static String KEY_MSG_PW = "password";
 
-    final static String MESSAGE = "15,sim770\n" + "300,name,T,89,unit,time,source,type";
+    final static String MESSAGE = "15,mascot-testdevices1\n" + "600,mascot3";
 
     MQTTHelper helper;
     Vertx vertx;
@@ -62,7 +67,7 @@ public class SystemTest {
     }
 
     @Test
-    public void MessageSystemTest(TestContext context) {
+    public void PublishSystemTest(TestContext context) {
         Properties prop = new Properties();
         prop.put(KEY_BROKER_URI, MQTT_BROKER_HOST);
         prop.put(KEY_BROKER_PORT, MQTT_BROKER_PORT);
@@ -76,6 +81,39 @@ public class SystemTest {
             context.assertTrue((boolean) back);
             async.complete();
         });
+        async.awaitSuccess(30000);
+    }
+
+    @Test
+    public void SubscribeAndPublishSystemTest(TestContext context) {
+        Properties prop = new Properties();
+        prop.put(KEY_BROKER_URI, MQTT_BROKER_HOST);
+        prop.put(KEY_BROKER_PORT, MQTT_BROKER_PORT);
+        prop.put(KEY_BOOTSTRAP_ENCRYPTION, BOOTSTRAP_KEY);
+        prop.put(KEY_MSG_USER, MSG_DEVICE_USER);
+        prop.put(KEY_MSG_PW, MSG_DEVICE_PW);
+
+        Properties configProp = new Properties();
+        configProp.setProperty("bootstrapped", BOOTSTRAPPED.name());
+
+        // Add the properties to the config so that the bootstrapped value is set
+        JsonObject conf = JsonHelper.from(configProp);
+        EventBus eb = helper.getVertx().eventBus();
+        eb.publish("setConfig", conf);
+
+        Async async = context.async();
+
+        helper.subscribeToTopic(MSG_DEVICE, prop, back -> {
+                helper.publishMessage(MSG_DEVICE, MESSAGE, prop, back2 -> {
+                    logger.info("Back:" + back2);
+                    context.assertTrue((boolean) back2);
+                    //async.complete();
+                });
+            },
+            callback -> {
+                logger.info("Back:" + callback);
+                async.complete();
+            });
         async.awaitSuccess(30000);
     }
 
