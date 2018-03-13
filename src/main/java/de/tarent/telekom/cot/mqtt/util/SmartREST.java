@@ -17,18 +17,6 @@ public class SmartREST {
         return "15," + xid + "\n604," + ManagedObjectId + "," + iccid;
     }
 
-    /*public static String getPayloadUpdateDeviceData(String managedObjectId) {
-
-        String payload = "15,"+DEVICE_XID+ "\n605,"+managedObjectId+","+DEVICE_MODEL+","+
-            DEVICE_REVISION_NUMBER+","+
-            DEVICE_HARDWARE_SERIAL+","+DEVICE_APP_VERSION+","+DEVICE_BL_VERSION+","+
-            DEVICE_BT_VERSION+","+DEVICE_MOD_VERSION+","+
-            DEVICE_IMEI_NUMBER+","+DEVICE_ICCID+","+DEVICE_IMSI_NUMBER;
-        LOGGER.debug("Update device data payload: " + payload);
-
-        return payload;
-    }*/
-
     public static String getPayloadUpdateOperations(String xid, String managedObjectId) {
         return "15,"+ xid +"\n606,"+managedObjectId;
     }
