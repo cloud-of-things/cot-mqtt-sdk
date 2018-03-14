@@ -85,7 +85,7 @@ public class SystemTest {
     }
 
     @Test
-    public void SubscribeAndPublishSystemTest(TestContext context) {
+    public void SubscribeAndPublishSystemTest(TestContext context) throws InterruptedException {
         Properties prop = new Properties();
         prop.put(KEY_BROKER_URI, MQTT_BROKER_HOST);
         prop.put(KEY_BROKER_PORT, MQTT_BROKER_PORT);
@@ -100,14 +100,16 @@ public class SystemTest {
         JsonObject conf = JsonHelper.from(configProp);
         EventBus eb = helper.getVertx().eventBus();
         eb.publish("setConfig", conf);
-
+        Thread.sleep(2000);
         Async async = context.async();
+
+        Async async2 = context.async();
 
         helper.subscribeToTopic(MSG_DEVICE, prop, back -> {
                 helper.publishMessage(MSG_DEVICE, MESSAGE, prop, back2 -> {
                     logger.info("Back:" + back2);
                     context.assertTrue((boolean) back2);
-                    //async.complete();
+                    async2.complete();
                 });
             },
             callback -> {
@@ -115,6 +117,7 @@ public class SystemTest {
                 async.complete();
             });
         async.awaitSuccess(30000);
+        async2.awaitSuccess();
     }
 
     @Test
