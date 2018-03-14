@@ -30,6 +30,7 @@ public class MQTTHelper extends AbstractVerticle {
     private static final String REGISTER_PUBLISH_PREFIX = "ss/";
     private static final String MESSAGE_SUBSCRIBE_PREFIX = "mr/";
     private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
+    private static final String SMARTREST_XID = "mascot-testdevices1";
     private static MQTTHelper helper;
 
     private final Configuration config = new Configuration();
@@ -128,6 +129,7 @@ public class MQTTHelper extends AbstractVerticle {
         final int qualityOfService = getQoSValue(msg);
         msg.put("QoS", qualityOfService);
 
+        msg.put("xId", SMARTREST_XID);
         eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {

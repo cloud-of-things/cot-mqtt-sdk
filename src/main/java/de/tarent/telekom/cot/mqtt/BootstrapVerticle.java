@@ -2,6 +2,7 @@ package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.EncryptionHelper;
 import de.tarent.telekom.cot.mqtt.util.Secret;
+import de.tarent.telekom.cot.mqtt.util.SmartREST;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -11,6 +12,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
@@ -41,7 +43,9 @@ public class BootstrapVerticle extends AbstractVerticle {
         final MqttClientOptions options = new MqttClientOptions()
             .setPassword(msg.getString("initialPassword"))
             .setUsername(msg.getString("initialUser"))
-            .setAutoKeepAlive(true);
+            .setAutoKeepAlive(true)
+            .setSsl(true)
+            .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
         client = MqttClient.create(vertx, options);
 
         config.setHandler(s -> {
@@ -109,7 +113,10 @@ public class BootstrapVerticle extends AbstractVerticle {
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
                 bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
+                bootStrapDoneMessage.put("cloudPassword", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
+
+                createManagedObject();
             }
         });
     }
@@ -141,4 +148,83 @@ public class BootstrapVerticle extends AbstractVerticle {
             }
         });
     }
+
+    private void createManagedObject(){
+        final Future<JsonObject> config = getConfig();
+
+        config.setHandler(s -> {
+
+                if (s.succeeded()) {
+                    JsonObject configObject = s.result();
+
+                    final String deviceId = s.result().getString("deviceId");
+                    final String password = s.result().getString("cloudPassword");
+
+                    final MqttClientOptions options = new MqttClientOptions()
+                        .setPassword(password)
+                        .setUsername(deviceId)
+                        .setAutoKeepAlive(true)
+                        .setSsl(true)
+                        .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+                    final int port = Integer.parseInt(configObject.getString("brokerPort"));
+                    final MqttClient MOclient = MqttClient.create(vertx, options);
+
+                    MOclient.publishHandler(h -> {
+                        LOGGER.info("Message with topic " + h.topicName() + " with QOS " + h.qosLevel().name() + " received");
+                        if (h.topicName().equals(s.result().getString("subscribeTopic"))) {
+
+                            String[] parsedPayload= SmartREST.parseResponsePayload(h.payload());
+                            //object doesnt exist
+                            if(parsedPayload[0].equals("50")&&parsedPayload[2].equals("404")){
+                                String message = SmartREST.getPayloadSelfCreationRequest(configObject.getString("xId"),configObject.getString("deviceId"),"deviceName");
+                                MOPublish(MOclient, configObject.getString("publishTopic"), message);
+                            }
+                            //object already exists
+                            else if(parsedPayload[0].equals("601")){
+                                //601,1,mascot3,2817383;
+                                //what to do when object for iccid already exists?
+                                
+                            }
+                            //object created we
+                            if(parsedPayload[0].equals("603")){
+                                final JsonObject managedObject = new JsonObject();
+                                managedObject.put("managedObjectId", parsedPayload[2]);
+                                eb.publish("setConfig", managedObject);
+
+                                String registerICCIDString = SmartREST.getPayloadRegisterICCIDasExternalId(configObject.getString("xId"),parsedPayload[2],configObject.getString("deviceId"));
+                                MOPublish(MOclient, configObject.getString("publishTopic"), registerICCIDString);
+                                String updateOperationsString = SmartREST.getPayloadUpdateOperations(configObject.getString("xId"),parsedPayload[2]);
+                                MOPublish(MOclient, configObject.getString("publishTopic"), updateOperationsString);
+                                MOclient.unsubscribe(configObject.getString("subscribeTopic"));
+                                MOclient.disconnect();
+                            }
+                        }
+                    });
+
+                    MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
+                        if (ch.succeeded()) {
+                            LOGGER.info("Connected to a server");
+                            MOclient.subscribe(configObject.getString("subscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
+                                d -> {});
+                            MOPublish(MOclient, configObject.getString("publishTopic"),SmartREST.getPayloadCheckManagedObject("mascot-testdevices1", s.result().getString("deviceId")));
+                        } else {
+                            LOGGER.error("Failed to connect to a server", ch.cause());
+                        }
+                    });
+            }
+        });
+
+    }
+
+    private void MOPublish(MqttClient client, String topic, String message){
+        client.publish(
+            topic,
+            Buffer.buffer(message),
+            MqttQoS.AT_MOST_ONCE,
+            false,
+            false,
+            k -> {}
+        );
+    }
+
 }
