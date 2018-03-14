@@ -57,13 +57,7 @@ public class SystemTest {
 
     @After
     public void after() {
-        Set<String> list = vertx.deploymentIDs();
-        if (list != null && list.size() > 0) {
-            list.forEach(id -> {
-                logger.info("to undeploy:" + id);
-                vertx.undeploy(id);
-            });
-        }
+        vertx.undeploy(helper.deploymentID());
     }
 
     @Test
