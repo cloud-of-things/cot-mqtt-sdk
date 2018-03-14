@@ -1,7 +1,7 @@
 ## API to service access to the MQTT broker for bootstrapping and CoT interaction
 
 Das NBIOT-MQTT SDK ermöglicht es Device-Entwicklern den Bootstrap-Vorgang gegen die **Cumulocity** 
-und anschliessendes Subscriben und Publishen am **HiveMQ** durchzuführen ohne diese selbst zu implementieren. 
+und anschliessendes Subscriben und Publishen am **MQTT Broker** durchzuführen ohne diese selbst zu implementieren. 
 Das SDK baut auf **Vert.x** auf.
 
 ### Das SDK in Projekten Einbinden
@@ -28,7 +28,7 @@ Nachdem man das SDK in seinem Projekt eingebunden hat, kann man über die Method
 _Im Falle, dass man selbst eine Vert.x-Anwendung entwickelt sollte man dieser die vertx Instanz mitgeben._
 
 #### Verfügbare Methoden:
-**registerDevice** - Handelt den Bootstrapping Vorgang ab und liefert das Passwort. Bekommt die **DeviceID(ICCID)** übergeben 
+**registerDevice** - Handelt den Bootstrapping Vorgang ab und liefert das Passwort zurück. Bekommt die **DeviceID(ICCID)** übergeben 
 und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für _initialPassword, initialUser, brokerPort, brokerURI, QoS (optional)_.
 
 **subscribeToTopic** - Erstellt eine Subscription am gewünschten Broker für das Device. Bekommt die **DeviceID(ICCID)** übergeben 
@@ -41,4 +41,4 @@ brokerURI, QoS (optional)_ übergeben.
 #### Sonstiges:
 _**QoS**_ muss einer von folgende Werte haben: **0** (at most once), **1** (at least once), **2** (exactly once), oder leer gelassen werden, wenn es egal ist. _Default ist immer **0** (at most once)_. 
 
-Weiterhin muss allen Methoden ein **Callback** übergeben werden, über dass die Ergebnisse der Methoden zurückgegeben werden.
+Weiterhin muss allen Methoden ein **Callback** übergeben werden, über das die Ergebnisse der Methoden zurückgegeben werden.
