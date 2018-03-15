@@ -50,7 +50,7 @@ public class MessageVerticle extends AbstractVerticle {
                 .setPassword(msg.getString("password"))
                 .setUsername(msg.getString("user"))
                 .setAutoKeepAlive(true)
-                .setSsl(true)
+                .setSsl(msg.getBoolean("ssl"))
                 .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
 
         //connect and publish on /iccid
@@ -91,7 +91,7 @@ public class MessageVerticle extends AbstractVerticle {
                 .setPassword(msg.getString("password"))
                 .setUsername(msg.getString("user"))
                 .setAutoKeepAlive(true)
-                .setSsl(true)
+                .setSsl(msg.getBoolean("ssl"))
                 .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
 
         //connect and subscribe on /iccid
@@ -129,7 +129,7 @@ public class MessageVerticle extends AbstractVerticle {
                 .setPassword(msg.getString("password"))
                 .setUsername(msg.getString("user"))
                 .setAutoKeepAlive(true)
-                .setSsl(true)
+                .setSsl(msg.getBoolean("ssl"))
                 .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
 
         //connect and subscribe on /iccid

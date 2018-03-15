@@ -129,6 +129,9 @@ public class MQTTHelper extends AbstractVerticle {
         final int qualityOfService = getQoSValue(msg);
         msg.put("QoS", qualityOfService);
 
+        final boolean ssl = getSslValue(msg);
+        msg.put("ssl", ssl);
+
         msg.put("xId", SMARTREST_XID);
         eventBus.publish("setConfig", msg);
 
@@ -162,6 +165,9 @@ public class MQTTHelper extends AbstractVerticle {
 
         final int qualityOfService = getQoSValue(msg);
         msg.put("QoS", qualityOfService);
+
+        final boolean ssl = getSslValue(msg);
+        msg.put("ssl", ssl);
 
         eventBus.send("publish", msg, result -> {
             if (result.succeeded()) {
@@ -205,6 +211,9 @@ public class MQTTHelper extends AbstractVerticle {
                     final int qualityOfService = getQoSValue(msg);
                     msg.put("QoS", qualityOfService);
 
+                    final boolean ssl = getSslValue(msg);
+                    msg.put("ssl", ssl);
+
                     eventBus.send("subscribe", msg, messageHandler -> {
                         if (messageHandler.succeeded()) {
                             final JsonObject o = (JsonObject) messageHandler.result().body();
@@ -240,6 +249,9 @@ public class MQTTHelper extends AbstractVerticle {
         final int qualityOfService = getQoSValue(msg);
         msg.put("QoS", qualityOfService);
 
+        final boolean ssl = getSslValue(msg);
+        msg.put("ssl", ssl);
+
         eventBus.send("unsubscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
                 JsonObject o = (JsonObject) messageHandler.result().body();
@@ -267,5 +279,16 @@ public class MQTTHelper extends AbstractVerticle {
         }
 
         return MqttQoS.AT_MOST_ONCE.value();
+    }
+
+    private boolean getSslValue(JsonObject msg) {
+        final String ssl = msg.getString("ssl");
+
+        // We don't need the user to set this, it should always be true. We only set it to false for tests.
+        if (ssl == null) {
+            return true;
+        } else {
+            return Boolean.parseBoolean(ssl);
+        }
     }
 }
