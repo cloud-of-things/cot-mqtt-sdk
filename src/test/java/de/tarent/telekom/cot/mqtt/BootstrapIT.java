@@ -75,6 +75,7 @@ public class BootstrapIT {
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
         prop.setProperty("message", "test1234567890ab");
+        prop.setProperty("ssl", "false");
         JsonObject o = JsonHelper.from(prop);
         EventBus eb = helper.getVertx().eventBus();
         Async async = context.async();
@@ -91,6 +92,7 @@ public class BootstrapIT {
         prop.setProperty("initialPassword", "Fhdt1bb1f");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
+        prop.setProperty("ssl", "false");
         String devId = "testDevice";
         Async async = context.async();
         helper.registerDevice(devId, prop, back -> {
@@ -110,6 +112,7 @@ public class BootstrapIT {
         prop.setProperty("brokerPort", "11883");
         prop.setProperty("secret", "1234567890abcdef");
         prop.setProperty("bootstrapped", ONGOING.name());
+        prop.setProperty("ssl", "false");
         String devId = "testDevice";
         JsonObject conf = JsonHelper.from(prop);
         EventBus eb = helper.getVertx().eventBus();

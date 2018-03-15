@@ -44,7 +44,7 @@ public class BootstrapVerticle extends AbstractVerticle {
             .setPassword(msg.getString("initialPassword"))
             .setUsername(msg.getString("initialUser"))
             .setAutoKeepAlive(true)
-            .setSsl(true)
+            .setSsl(msg.getBoolean("ssl"))
             .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
         client = MqttClient.create(vertx, options);
 

@@ -50,6 +50,7 @@ public class MessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
+        prop.setProperty("ssl", "false");
         final String deviceId = "testDevice";
         // Test string taken form device-simulator: SmartRestMessageBuilderTest.testMeasurementPayload();
         final String message = "15,sim770\n" + "300,name,T,89,unit,time,source,type";
@@ -72,6 +73,7 @@ public class MessageIT {
         prop.setProperty("brokerPort", "11883");
         prop.setProperty("bootstrapped", BOOTSTRAPPED.name());
         prop.setProperty("QoS", "2");
+        prop.setProperty("ssl", "false");
 
         // Add the properties to the config so that the bootstrapped value is set
         JsonObject conf = JsonHelper.from(prop);
@@ -102,6 +104,7 @@ public class MessageIT {
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
         prop.setProperty("bootstrapped", NOT_STARTED.name());
+        prop.setProperty("ssl", "false");
 
         // Add the properties to the config so that the bootstrapped value is set
         JsonObject conf = JsonHelper.from(prop);
@@ -131,6 +134,7 @@ public class MessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
+        prop.setProperty("ssl", "false");
 
         final String deviceId = "testDevice";
         final Async async = context.async();
@@ -155,6 +159,7 @@ public class MessageIT {
         prop.setProperty("password", "somePassword");
         prop.setProperty("brokerURI", "localhost");
         prop.setProperty("brokerPort", "11883");
+        prop.setProperty("ssl", "false");
         final String deviceId = "testDevice";
         final Async async = context.async();
         helper.unsubscribeFromTopic(deviceId, prop, back -> {
