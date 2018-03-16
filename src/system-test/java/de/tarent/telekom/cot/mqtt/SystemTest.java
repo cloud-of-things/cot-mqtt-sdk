@@ -27,7 +27,7 @@ public class SystemTest {
     final static String BOOTSTRAP_USER = "devicebootstrap";
     final static String BOOTSTRAP_PASSWORD = "Fhdt1bb1f";
     final static String BOOTSTRAP_KEY = "bootstrapkey1234";
-    final static String BOOTSTRAP_DEVICE = "mascot4";
+    final static String BOOTSTRAP_DEVICE = "mascota";
 
     final static String KEY_BOOTSTRAP_USER = "initialUser";
     final static String KEY_BOOTSTRAP_PW = "initialPassword";
@@ -129,6 +129,6 @@ public class SystemTest {
             context.assertNotNull(back);
             async.complete();
         });
-        async.awaitSuccess(30000);
+        async.awaitSuccess(300000);
     }
 }
