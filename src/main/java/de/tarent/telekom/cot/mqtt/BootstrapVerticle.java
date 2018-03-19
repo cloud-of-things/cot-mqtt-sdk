@@ -90,19 +90,13 @@ public class BootstrapVerticle extends AbstractVerticle {
                 replyObject.put("status", "registered");
                 replyObject.put("password", new String(pass));
 
+                eb.publish("bootstrapComplete", replyObject);
+
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
                 bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
-                bootStrapDoneMessage.put("cloudPassword", new String(pass));
+                //bootStrapDoneMessage.put("password", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
-
-                eb.consumer("managedObjectCreated", result -> {
-                    eb.publish("bootstrapComplete", replyObject);
-                });
-
-                JsonObject moMsg = msg.copy();
-                moMsg.put("cloudPassword", new String(pass));
-                eb.publish("createManagedObject", msg);
             }
         });
     }
