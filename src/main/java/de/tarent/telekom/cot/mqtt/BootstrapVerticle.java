@@ -137,4 +137,12 @@ public class BootstrapVerticle extends AbstractVerticle {
         }
     }
 
+    private void setSslOptions(final MqttClientOptions options, final boolean ssl) {
+        if (ssl) {
+            options
+                .setSsl(true)
+                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+        }
+    }
+
 }
