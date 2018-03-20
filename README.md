@@ -39,6 +39,8 @@ Bekommt weiterhin die **DeviceID(ICCID)** und ein **Property-Objekt** vom Typ ja
 brokerURI, QoS (optional)_ übergeben.
 
 #### Sonstiges:
+_**SSL**_ kann ausgeschaltet werden indem Man eine Property "ssl", "false" eingibt. Wenn man aber SSL verwenden will, muss eine Directory "certificates" angeleget werden, wo das jar liegt, und eine client.jsk mit beide Zertifikaten angelegt werden mit folgenden Passwort: kVJEgEVwn3TB9BPA
+
 _**QoS**_ muss einer von folgende Werte haben: **0** (at most once), **1** (at least once), **2** (exactly once), oder leer gelassen werden, wenn es egal ist. _Default ist immer **0** (at most once)_. 
 
 Weiterhin muss allen Methoden ein **Callback** übergeben werden, über das die Ergebnisse der Methoden zurückgegeben werden.
