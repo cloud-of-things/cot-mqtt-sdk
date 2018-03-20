@@ -43,9 +43,10 @@ public class BootstrapVerticle extends AbstractVerticle {
         final MqttClientOptions options = new MqttClientOptions()
             .setPassword(msg.getString("initialPassword"))
             .setUsername(msg.getString("initialUser"))
-            .setAutoKeepAlive(true)
-            .setSsl(msg.getBoolean("ssl"))
-            .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setAutoKeepAlive(true);
+
+        setSslOptions(options, msg.getBoolean("ssl"));
+
         client = MqttClient.create(vertx, options);
 
         config.setHandler(s -> {
@@ -225,6 +226,14 @@ public class BootstrapVerticle extends AbstractVerticle {
             false,
             k -> {}
         );
+    }
+
+    private void setSslOptions(final MqttClientOptions options, final boolean ssl) {
+        if (ssl) {
+            options
+                .setSsl(true)
+                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+        }
     }
 
 }
