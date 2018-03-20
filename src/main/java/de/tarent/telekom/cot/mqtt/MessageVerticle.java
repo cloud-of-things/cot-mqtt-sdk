@@ -47,11 +47,11 @@ public class MessageVerticle extends AbstractVerticle {
     private void publishMessage(final JsonObject msg, final Message handle) {
 
         final MqttClientOptions options = new MqttClientOptions()
-                .setPassword(msg.getString("password"))
-                .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true)
-                .setSsl(msg.getBoolean("ssl"))
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setPassword(msg.getString("password"))
+            .setUsername(msg.getString("user"))
+            .setAutoKeepAlive(true);
+
+        setSslOptions(options, msg.getBoolean("ssl"));
 
         //connect and publish on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -59,9 +59,9 @@ public class MessageVerticle extends AbstractVerticle {
         if (client == null) {
             client = MqttClient.create(vertx, options);
         }
-        if (client.isConnected()){
+        if (client.isConnected()) {
             publish(msg, handle);
-        }else {
+        } else {
             client.connect(port, msg.getString("brokerURI"), ch -> {
                 if (ch.succeeded()) {
                     LOGGER.info("Connected to a server");
@@ -73,26 +73,26 @@ public class MessageVerticle extends AbstractVerticle {
         }
     }
 
-    private void publish(final JsonObject msg, final Message handle){
+    private void publish(final JsonObject msg, final Message handle) {
         client.publish(msg.getValue("publishTopic").toString(),
-                Buffer.buffer(msg.getValue("message").toString()),
-                MqttQoS.valueOf(msg.getInteger("QoS")),
-                false,
-                false,
-                s -> {
-                    LOGGER.info("Publish sent to a server");
-                    JsonObject jso = new JsonObject().put("published", true);
-                    handle.reply(jso);
-                });
+            Buffer.buffer(msg.getValue("message").toString()),
+            MqttQoS.valueOf(msg.getInteger("QoS")),
+            false,
+            false,
+            s -> {
+                LOGGER.info("Publish sent to a server");
+                JsonObject jso = new JsonObject().put("published", true);
+                handle.reply(jso);
+            });
     }
 
     private void subscribeToTopic(final JsonObject msg, final Message handle) {
         final MqttClientOptions options = new MqttClientOptions()
-                .setPassword(msg.getString("password"))
-                .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true)
-                .setSsl(msg.getBoolean("ssl"))
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setPassword(msg.getString("password"))
+            .setUsername(msg.getString("user"))
+            .setAutoKeepAlive(true);
+
+        setSslOptions(options, msg.getBoolean("ssl"));
 
         //connect and subscribe on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -126,11 +126,11 @@ public class MessageVerticle extends AbstractVerticle {
 
     private void unsubscribeFromTopic(final JsonObject msg, final Message handle) {
         final MqttClientOptions options = new MqttClientOptions()
-                .setPassword(msg.getString("password"))
-                .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true)
-                .setSsl(msg.getBoolean("ssl"))
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setPassword(msg.getString("password"))
+            .setUsername(msg.getString("user"))
+            .setAutoKeepAlive(true);
+
+        setSslOptions(options, msg.getBoolean("ssl"));
 
         //connect and subscribe on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -154,12 +154,11 @@ public class MessageVerticle extends AbstractVerticle {
     }
 
     private void subscribe(final JsonObject msg, final Message handle) {
-        client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value(),
-                s -> {
-                    LOGGER.info("Subscribe call sent to a server");
-                    JsonObject jso = new JsonObject().put("subscribed", true);
-                    handle.reply(jso);
-                });
+        client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value(), s -> {
+            LOGGER.info("Subscribe call sent to a server");
+            JsonObject jso = new JsonObject().put("subscribed", true);
+            handle.reply(jso);
+        });
     }
 
     private void unsubscribe(final JsonObject msg, final Message handle) {
@@ -168,5 +167,13 @@ public class MessageVerticle extends AbstractVerticle {
             final JsonObject jso = new JsonObject().put("unsubscribed", true);
             handle.reply(jso);
         });
+    }
+
+    private void setSslOptions(final MqttClientOptions options, final boolean ssl) {
+        if (ssl) {
+            options
+                .setSsl(true)
+                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+        }
     }
 }
