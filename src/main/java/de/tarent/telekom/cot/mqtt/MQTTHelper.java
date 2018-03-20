@@ -36,6 +36,7 @@ public class MQTTHelper extends AbstractVerticle {
     private final Configuration config = new Configuration();
     private final BootstrapVerticle bootstrapVerticle = new BootstrapVerticle();
     private final MessageVerticle messageVerticle = new MessageVerticle();
+    private final ManagedObjectHelperVerticle managedObjectHelperVerticle = new ManagedObjectHelperVerticle();
 
     private final List<String> deploymentIds = new ArrayList<>();
 
@@ -57,6 +58,11 @@ public class MQTTHelper extends AbstractVerticle {
             }
         });
         vertx.deployVerticle(messageVerticle, dh -> {
+            if (dh.succeeded()) {
+                deploymentIds.add(dh.result());
+            }
+        });
+        vertx.deployVerticle(managedObjectHelperVerticle, dh -> {
             if (dh.succeeded()) {
                 deploymentIds.add(dh.result());
             }
@@ -124,6 +130,8 @@ public class MQTTHelper extends AbstractVerticle {
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
         msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
+        msg.put("moPublishTopic", MESSAGE_PUBLISH_PREFIX + deviceId);
+        msg.put("moSubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
         msg.put("deviceId", deviceId);
 
         final int qualityOfService = getQoSValue(msg);
