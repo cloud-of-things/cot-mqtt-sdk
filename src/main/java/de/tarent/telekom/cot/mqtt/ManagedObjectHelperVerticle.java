@@ -40,9 +40,10 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
         final MqttClientOptions options = new MqttClientOptions()
             .setPassword(password)
             .setUsername(deviceId)
-            .setAutoKeepAlive(true)
-            .setSsl(true)
-            .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setAutoKeepAlive(true);
+
+        setSslOptions(options, msg.getBoolean("ssl"));
+
         final int port = 8883;
         client = MqttClient.create(vertx, options);
 
@@ -105,6 +106,14 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
             k -> {
             }
         );
+    }
+
+    private void setSslOptions(final MqttClientOptions options, final boolean ssl) {
+        if (ssl) {
+            options
+                .setSsl(true)
+                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+        }
     }
 
 }
