@@ -27,7 +27,7 @@ public class SystemTest {
     final static String BOOTSTRAP_USER = "devicebootstrap";
     final static String BOOTSTRAP_PASSWORD = "Fhdt1bb1f";
     final static String BOOTSTRAP_KEY = "bootstrapkey1234";
-    final static String BOOTSTRAP_DEVICE = "mascota";
+    final static String BOOTSTRAP_DEVICE = "mascot4";
 
     final static String KEY_BOOTSTRAP_USER = "initialUser";
     final static String KEY_BOOTSTRAP_PW = "initialPassword";
@@ -40,6 +40,8 @@ public class SystemTest {
     final static String MSG_DEVICE_PW = "TP4NW7!iXi";
     final static String KEY_MSG_USER = "user";
     final static String KEY_MSG_PW = "password";
+    final static String DEVICE_XID = "mascot-testdevices1";
+    final static String XID = "xId";
 
     final static String MESSAGE = "15,mascot-testdevices1\n" + "600,mascot3";
 
@@ -122,6 +124,7 @@ public class SystemTest {
         prop.put(KEY_BOOTSTRAP_ENCRYPTION, BOOTSTRAP_KEY);
         prop.put(KEY_BOOTSTRAP_USER, BOOTSTRAP_USER);
         prop.put(KEY_BOOTSTRAP_PW, BOOTSTRAP_PASSWORD);
+        prop.put(XID,DEVICE_XID);
 
         Async async = context.async();
         helper.registerDevice(BOOTSTRAP_DEVICE, prop, back -> {

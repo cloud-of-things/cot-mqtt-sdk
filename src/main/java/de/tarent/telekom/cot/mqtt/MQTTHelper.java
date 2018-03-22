@@ -134,7 +134,6 @@ public class MQTTHelper extends AbstractVerticle {
         msg.put("deviceId", deviceId);
         msg.put("QoS", JsonHelper.getQoSValue(msg));
         msg.put("ssl", JsonHelper.getSslValue(msg));
-        msg.put("xId", SMARTREST_XID);
         eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
