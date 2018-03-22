@@ -15,11 +15,12 @@ buildscript {
     }
 }
 
-apply plugin: "org.sonarqube"
 apply plugin: "java"
 apply plugin: "application"
 apply plugin: "net.linguica.maven-settings"
 apply plugin: "maven-publish"
+apply plugin: "org.sonarqube"
+apply plugin: "jacoco"
 
 ext {
     vertxVersion = '3.5.1'
