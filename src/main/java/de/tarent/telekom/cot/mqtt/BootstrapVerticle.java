@@ -8,6 +8,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -90,13 +91,21 @@ public class BootstrapVerticle extends AbstractVerticle {
                 replyObject.put("status", "registered");
                 replyObject.put("password", new String(pass));
 
-                eb.publish("bootstrapComplete", replyObject);
-
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
                 bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
-                //bootStrapDoneMessage.put("password", new String(pass));
+                bootStrapDoneMessage.put("password", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
+
+                eb.consumer("managedObjectCreated", result -> {
+                    JsonObject moId= (JsonObject) result.body();
+                    replyObject.put("managedObjectId",moId.getValue("managedObjectId"));
+                    eb.publish("bootstrapComplete", replyObject);
+                });
+
+                JsonObject moMsg = msg.copy();
+                moMsg.put("cloudPassword", new String(pass));
+                eb.publish("createManagedObject", moMsg);
             }
         });
     }

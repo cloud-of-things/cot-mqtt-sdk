@@ -140,7 +140,6 @@ public class MQTTHelper extends AbstractVerticle {
         final boolean ssl = getSslValue(msg);
         msg.put("ssl", ssl);
 
-        msg.put("xId", SMARTREST_XID);
         eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
