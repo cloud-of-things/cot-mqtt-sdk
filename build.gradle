@@ -46,6 +46,7 @@ repositories {
     maven { url "${wBenchNexusUrl}/content/repositories/public" }
     maven { url "${wBenchNexusUrl}/content/repositories/2ndparty" }
     maven { url "${wBenchNexusUrl}/content/repositories/snapshots" }
+    maven { url "${wBenchNexusUrl}/content/repositories/gradle.org" }
     maven {
         name "nbiot-releases"
         url "${wBenchNexusUrl}/content/repositories/nbiot-releases"
