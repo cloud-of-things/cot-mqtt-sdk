@@ -76,8 +76,6 @@ version = '0.5.2-SNAPSHOT' // Don't forget to change this in the Readme.md!
 sourceCompatibility = '1.8'
 
 dependencies {
-    classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
-    
     systemTestCompile sourceSets.main.output
     systemTestCompile sourceSets.test.output
 
