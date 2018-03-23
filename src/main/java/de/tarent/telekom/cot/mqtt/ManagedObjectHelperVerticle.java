@@ -40,7 +40,7 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
 
         setSslOptions(options, msg.getBoolean("ssl"));
 
-        final int port = 8883;
+        final int port = Integer.parseInt(msg.getString("brokerPort"));
         client = MqttClient.create(vertx, options);
 
         client.publishHandler(h -> {
