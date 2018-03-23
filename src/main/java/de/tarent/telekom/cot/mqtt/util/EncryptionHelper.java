@@ -179,5 +179,29 @@ public class EncryptionHelper {
         return salt.toString();
 
     }
+    
+    
+    @Nonnull
+    public byte[] duplicationTest(@Nonnull final Secret secret, @Nonnull final byte[] data) {
+        Objects.requireNonNull(secret);
+        Objects.requireNonNull(data);
+        assertValidBlockSize(data);
+
+        final XTEAEngine engine = new XTEAEngine();
+        engine.init(false, new KeyParameter(secret.getKey()));
+
+        for (int i = 0; i < data.length; i += BLOCK_SIZE) {
+            engine.processBlock(data, i, data, i);
+        }
+        assertValidPadding(data);
+
+        final int paddingLength = getPaddingLength(data);
+        final byte[] shortenedArray = new byte[data.length - paddingLength];
+
+        System.arraycopy(data, 0, shortenedArray, 0, data.length - paddingLength);
+
+        return shortenedArray;
+    }
+
 
 }
