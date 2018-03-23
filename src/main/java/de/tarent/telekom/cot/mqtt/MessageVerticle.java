@@ -1,5 +1,6 @@
 package de.tarent.telekom.cot.mqtt;
 
+import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
@@ -8,7 +9,6 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
@@ -51,7 +51,7 @@ public class MessageVerticle extends AbstractVerticle {
             .setUsername(msg.getString("user"))
             .setAutoKeepAlive(true);
 
-        setSslOptions(options, msg.getBoolean("ssl"));
+        JsonHelper.setSslOptions(options, msg);
 
         //connect and publish on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -92,7 +92,7 @@ public class MessageVerticle extends AbstractVerticle {
             .setUsername(msg.getString("user"))
             .setAutoKeepAlive(true);
 
-        setSslOptions(options, msg.getBoolean("ssl"));
+        JsonHelper.setSslOptions(options, msg);
 
         //connect and subscribe on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -130,7 +130,7 @@ public class MessageVerticle extends AbstractVerticle {
             .setUsername(msg.getString("user"))
             .setAutoKeepAlive(true);
 
-        setSslOptions(options, msg.getBoolean("ssl"));
+        JsonHelper.setSslOptions(options, msg);
 
         //connect and subscribe on /iccid
         final int port = Integer.parseInt(msg.getString("brokerPort"));
@@ -167,13 +167,5 @@ public class MessageVerticle extends AbstractVerticle {
             final JsonObject jso = new JsonObject().put("unsubscribed", true);
             handle.reply(jso);
         });
-    }
-
-    private void setSslOptions(final MqttClientOptions options, final boolean ssl) {
-        if (ssl) {
-            options
-                .setSsl(true)
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
-        }
     }
 }

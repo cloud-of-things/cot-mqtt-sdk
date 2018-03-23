@@ -1,8 +1,6 @@
 package de.tarent.telekom.cot.mqtt;
 
-import de.tarent.telekom.cot.mqtt.util.ConfigHelper;
-import de.tarent.telekom.cot.mqtt.util.EncryptionHelper;
-import de.tarent.telekom.cot.mqtt.util.Secret;
+import de.tarent.telekom.cot.mqtt.util.*;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -11,7 +9,6 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
@@ -22,6 +19,8 @@ import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.ONGOING;
 public class BootstrapVerticle extends AbstractVerticle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapVerticle.class);
+    private final String bootstrappedKey = "bootstrapped";
+    private final String subscribeTopicKey = "subscribeTopic";
 
     private MqttClient client;
 
@@ -31,9 +30,7 @@ public class BootstrapVerticle extends AbstractVerticle {
     public void start() throws Exception {
         eb = vertx.eventBus();
 
-        eb.consumer("register", msg -> {
-            registerDevice((JsonObject) msg.body());
-        });
+        eb.consumer("register", msg -> registerDevice((JsonObject) msg.body()));
     }
 
     private void registerDevice(final JsonObject msg) {
@@ -44,14 +41,25 @@ public class BootstrapVerticle extends AbstractVerticle {
             .setUsername(msg.getString("initialUser"))
             .setAutoKeepAlive(true);
 
-        setSslOptions(options, msg.getBoolean("ssl"));
+        JsonHelper.setSslOptions(options, msg);
 
         client = MqttClient.create(vertx, options);
 
         config.setHandler(s -> {
 
             if (s.succeeded()) {
-                final String bootstrapped = s.result().getString("bootstrapped");
+                Bootstrapped bootstrapped;
+
+                try {
+                    bootstrapped = Bootstrapped.valueOf(s.result().getString(bootstrappedKey));
+                } catch (final NullPointerException e) {
+                    bootstrapped = null;
+                } catch (final IllegalArgumentException e) {
+                    LOGGER.error(
+                        "Illegal bootstrapped status value. Setting bootstrapped to null to start the bootstrapping process...");
+                    bootstrapped = null;
+                }
+
                 final String secret = s.result().getString("secret");
 
                 if (bootstrapped == null) {
@@ -59,14 +67,15 @@ public class BootstrapVerticle extends AbstractVerticle {
                     setPublishHandler(msg, newSecret);
                     LOGGER.info("no bootstrapping request sent. connect and publish.");
                     connectAndPublish(msg, newSecret);
-                } else if (bootstrapped.equals(ONGOING)) {
+                } else if (bootstrapped == ONGOING) {
                     setPublishHandler(msg, secret);
                     LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
                     final int port = Integer.parseInt(msg.getString("brokerPort"));
                     client.connect(port, msg.getString("brokerURI"), ch -> {
                         if (ch.succeeded()) {
-                            System.out.println("Connected to a server");
-                            client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value());
+                            LOGGER.info("Connected to a server");
+                            client.subscribe(msg.getString(subscribeTopicKey),
+                                MqttQoS.valueOf(msg.getInteger("QoS")).value());
                         }
                     });
                 }
@@ -92,7 +101,7 @@ public class BootstrapVerticle extends AbstractVerticle {
 
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
-                bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
+                bootStrapDoneMessage.put(bootstrappedKey, BOOTSTRAPPED);
                 bootStrapDoneMessage.put("password", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
 
@@ -114,7 +123,7 @@ public class BootstrapVerticle extends AbstractVerticle {
         final int port = Integer.parseInt(msg.getString("brokerPort"));
         client.connect(port, msg.getString("brokerURI"), ch -> {
             if (ch.succeeded()) {
-                System.out.println("Connected to a server");
+                LOGGER.info("Connected to a server");
                 client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value());
 
                 final JsonObject configParams = new JsonObject();
@@ -127,7 +136,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                     s -> {
                         LOGGER.info("Publish sent to a server");
                         //write to config that bootstrap process has started
-                        configParams.put("bootstrapped", ONGOING);
+                        configParams.put(bootstrappedKey, ONGOING);
                         configParams.put("secret", secret);
                         eb.publish("setConfig", configParams);
                     });
@@ -136,13 +145,4 @@ public class BootstrapVerticle extends AbstractVerticle {
             }
         });
     }
-
-    private void setSslOptions(final MqttClientOptions options, final boolean ssl) {
-        if (ssl) {
-            options
-                .setSsl(true)
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
-        }
-    }
-
 }
