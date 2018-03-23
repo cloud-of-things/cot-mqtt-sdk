@@ -78,7 +78,7 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
         });
 
 
-        client.connect(port, "nb-iot.int2-ram.m2m.telekom.com", ch -> {
+        client.connect(port,  msg.getString("brokerURI"), ch -> {
             if (ch.succeeded()) {
                 LOGGER.info("Connected to a server");
                 client.subscribe(msg.getString("moSubscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
