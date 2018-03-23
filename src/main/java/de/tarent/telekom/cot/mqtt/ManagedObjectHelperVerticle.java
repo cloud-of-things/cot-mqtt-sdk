@@ -1,14 +1,10 @@
 package de.tarent.telekom.cot.mqtt;
 
-import com.sun.xml.internal.bind.v2.TODO;
-import de.tarent.telekom.cot.mqtt.util.ConfigHelper;
 import de.tarent.telekom.cot.mqtt.util.SmartREST;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
