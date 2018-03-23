@@ -16,10 +16,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.util.Properties;
@@ -85,6 +82,7 @@ public class BootstrapIT {
         async.awaitSuccess(2000);
     }
 
+    @Ignore("Fake client needs to know what to do with the MO")
     @Test
     public void testDeviceRegister(TestContext context) {
         Properties prop = new Properties();
@@ -103,6 +101,7 @@ public class BootstrapIT {
         async.awaitSuccess(3000);
     }
 
+    @Ignore("Fake client needs to know what to do with the MO")
     @Test
     public void testDeviceWithExistingSecret(TestContext context){
         Properties prop = new Properties();
