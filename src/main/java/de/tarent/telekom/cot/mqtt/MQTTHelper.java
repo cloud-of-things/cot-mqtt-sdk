@@ -1,7 +1,6 @@
 package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.JsonHelper;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
@@ -133,13 +132,8 @@ public class MQTTHelper extends AbstractVerticle {
         msg.put("moPublishTopic", MESSAGE_PUBLISH_PREFIX + deviceId);
         msg.put("moSubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
         msg.put("deviceId", deviceId);
-
-        final int qualityOfService = getQoSValue(msg);
-        msg.put("QoS", qualityOfService);
-
-        final boolean ssl = getSslValue(msg);
-        msg.put("ssl", ssl);
-
+        msg.put("QoS", JsonHelper.getQoSValue(msg));
+        msg.put("ssl", JsonHelper.getSslValue(msg));
         eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
@@ -169,12 +163,8 @@ public class MQTTHelper extends AbstractVerticle {
         eventBus.publish("setConfig", msg);
         msg.put("publishTopic", MESSAGE_PUBLISH_PREFIX + deviceId);
         msg.put("message", message);
-
-        final int qualityOfService = getQoSValue(msg);
-        msg.put("QoS", qualityOfService);
-
-        final boolean ssl = getSslValue(msg);
-        msg.put("ssl", ssl);
+        msg.put("QoS", JsonHelper.getQoSValue(msg));
+        msg.put("ssl", JsonHelper.getSslValue(msg));
 
         eventBus.send("publish", msg, result -> {
             if (result.succeeded()) {
@@ -214,12 +204,8 @@ public class MQTTHelper extends AbstractVerticle {
 
                     final JsonObject msg = JsonHelper.from(prop);
                     msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-
-                    final int qualityOfService = getQoSValue(msg);
-                    msg.put("QoS", qualityOfService);
-
-                    final boolean ssl = getSslValue(msg);
-                    msg.put("ssl", ssl);
+                    msg.put("QoS", JsonHelper.getQoSValue(msg));
+                    msg.put("ssl", JsonHelper.getSslValue(msg));
 
                     eventBus.send("subscribe", msg, messageHandler -> {
                         if (messageHandler.succeeded()) {
@@ -252,12 +238,8 @@ public class MQTTHelper extends AbstractVerticle {
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
         msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-
-        final int qualityOfService = getQoSValue(msg);
-        msg.put("QoS", qualityOfService);
-
-        final boolean ssl = getSslValue(msg);
-        msg.put("ssl", ssl);
+        msg.put("QoS", JsonHelper.getQoSValue(msg));
+        msg.put("ssl", JsonHelper.getSslValue(msg));
 
         eventBus.send("unsubscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
@@ -268,34 +250,5 @@ public class MQTTHelper extends AbstractVerticle {
                 unsubscriptionCallback.accept(false);
             }
         });
-    }
-
-    private int getQoSValue(final JsonObject msg) {
-        int qualityOfService = 0;
-
-        try {
-            qualityOfService = Integer.parseInt(msg.getString("QoS"));
-        } catch (final NumberFormatException e) {
-            logger.error("Error while parsing QoS value, using default value of 0.");
-        }
-
-        for (MqttQoS mqttQoS : MqttQoS.values()) {
-            if (qualityOfService == mqttQoS.value()) {
-                return qualityOfService;
-            }
-        }
-
-        return MqttQoS.AT_MOST_ONCE.value();
-    }
-
-    private boolean getSslValue(JsonObject msg) {
-        final String ssl = msg.getString("ssl");
-
-        // We don't need the user to set this, it should always be true. We only set it to false for tests.
-        if (ssl == null) {
-            return true;
-        } else {
-            return Boolean.parseBoolean(ssl);
-        }
     }
 }
