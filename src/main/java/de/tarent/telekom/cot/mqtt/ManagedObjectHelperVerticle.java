@@ -30,7 +30,7 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
         eb.consumer("createManagedObject", msg -> createManagedObject((JsonObject) msg.body()));
     }
 
-    private void createManagedObject(JsonObject msg) {
+    private void createManagedObject(final JsonObject msg) {
 
         final String deviceId = msg.getString(DEVICE_ID_KEY);
         final String password = msg.getString(CLOUD_PASSWORD_KEY);
@@ -62,7 +62,7 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
                     //TODO what does it mean, when the object already exists? how do we handle it?
                 }
 
-                //object created we
+                //object created
                 if (parsedPayload[0].equals("603")) {
                     handleMOCreated(msg, parsedPayload[2]);
                 }
