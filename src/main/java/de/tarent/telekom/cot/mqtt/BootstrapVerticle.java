@@ -3,6 +3,7 @@ package de.tarent.telekom.cot.mqtt;
 import de.tarent.telekom.cot.mqtt.util.*;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
@@ -19,8 +20,7 @@ import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 public class BootstrapVerticle extends AbstractVerticle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapVerticle.class);
-    private final String bootstrappedKey = "bootstrapped";
-    private final String subscribeTopicKey = "subscribeTopic";
+    private static final String BOOTSTRAPPED_KEY = "bootstrapped";
 
     private MqttClient client;
 
@@ -46,42 +46,49 @@ public class BootstrapVerticle extends AbstractVerticle {
         client = MqttClient.create(vertx, options);
 
         config.setHandler(s -> {
-
             if (s.succeeded()) {
-                Bootstrapped bootstrapped;
-
-                try {
-                    bootstrapped = Bootstrapped.valueOf(s.result().getString(bootstrappedKey));
-                } catch (final NullPointerException e) {
-                    bootstrapped = null;
-                } catch (final IllegalArgumentException e) {
-                    LOGGER.error(
-                        "Illegal bootstrapped status value. Setting bootstrapped to null to start the bootstrapping process...");
-                    bootstrapped = null;
-                }
-
+                final Bootstrapped bootstrapped = getBootstrappedStatus(s);
                 final String secret = s.result().getString("secret");
 
                 if (bootstrapped == null) {
-                    final String newSecret = EncryptionHelper.generatePassword();
-                    setPublishHandler(msg, newSecret);
-                    LOGGER.info("no bootstrapping request sent. connect and publish.");
-                    connectAndPublish(msg, newSecret);
+                    bootstrapDevice(msg);
                 } else if (bootstrapped == ONGOING) {
-                    setPublishHandler(msg, secret);
-                    LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
-                    final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
-                    client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
-                        if (ch.succeeded()) {
-                            LOGGER.info("Connected to a server");
-                            client.subscribe(msg.getString(subscribeTopicKey),
-                                MqttQoS.valueOf(msg.getInteger(QOS_KEY)).value());
-                        }
-                    });
+                    bootstrapConnectAndSubscribe(msg, secret);
                 }
             }
         });
+    }
 
+    private void bootstrapDevice(final JsonObject msg) {
+        final String newSecret = EncryptionHelper.generatePassword();
+        setPublishHandler(msg, newSecret);
+        LOGGER.info("no bootstrapping request sent. connect and publish.");
+        connectAndPublish(msg, newSecret);
+    }
+
+    private void bootstrapConnectAndSubscribe(final JsonObject msg, final String secret) {
+        setPublishHandler(msg, secret);
+        LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
+        final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
+        client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
+            if (ch.succeeded()) {
+                LOGGER.info("Connected to a server");
+                client.subscribe(msg.getString(SUBSCRIBE_TOPIC_KEY),
+                    MqttQoS.valueOf(msg.getInteger(QOS_KEY)).value());
+            }
+        });
+    }
+
+    private Bootstrapped getBootstrappedStatus(final AsyncResult<JsonObject> s) {
+        try {
+            return Bootstrapped.valueOf(s.result().getString(BOOTSTRAPPED_KEY));
+        } catch (final NullPointerException e) {
+            return null;
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(
+                "Illegal bootstrapped status value. Setting bootstrapped to null to start the bootstrapping process...");
+            return null;
+        }
     }
 
     private void setPublishHandler(final JsonObject msg, final String secret) {
@@ -101,7 +108,7 @@ public class BootstrapVerticle extends AbstractVerticle {
 
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
-                bootStrapDoneMessage.put(bootstrappedKey, BOOTSTRAPPED);
+                bootStrapDoneMessage.put(BOOTSTRAPPED_KEY, BOOTSTRAPPED);
                 bootStrapDoneMessage.put("password", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
 
@@ -136,7 +143,7 @@ public class BootstrapVerticle extends AbstractVerticle {
                     s -> {
                         LOGGER.info("Publish sent to a server");
                         //write to config that bootstrap process has started
-                        configParams.put(bootstrappedKey, ONGOING);
+                        configParams.put(BOOTSTRAPPED_KEY, ONGOING);
                         configParams.put("secret", secret);
                         eb.publish("setConfig", configParams);
                     });

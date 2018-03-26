@@ -168,11 +168,11 @@ public class EncryptionHelper {
     }
 
     public static String generatePassword() {
-        String saltchars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        StringBuffer salt = new StringBuffer();
-        Random rnd = new Random();
+        final String saltchars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        final StringBuilder salt = new StringBuilder();
+        final Random rnd = new Random();
         while (salt.length() < 16) {
-            int index = rnd.nextInt(saltchars.length());
+            final int index = rnd.nextInt(saltchars.length());
             salt.append(saltchars.charAt(index));
         }
 

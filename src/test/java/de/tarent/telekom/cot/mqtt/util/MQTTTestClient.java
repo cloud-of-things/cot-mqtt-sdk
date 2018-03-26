@@ -26,15 +26,15 @@ public class MQTTTestClient extends AbstractVerticle {
 
     private boolean periodicPublishing = false;
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         Vertx.vertx().deployVerticle(new MQTTTestClient());
     }
 
-    public MQTTTestClient(){
+    public MQTTTestClient() {
         this(true);
     }
 
-    public MQTTTestClient(boolean startPeriodicPublishing){
+    public MQTTTestClient(boolean startPeriodicPublishing) {
         periodicPublishing = startPeriodicPublishing;
     }
 
@@ -45,15 +45,32 @@ public class MQTTTestClient extends AbstractVerticle {
         option.setPassword("initPW");
         option.setClientId("endpointClient");
         MqttClient mqttClient = MqttClient.create(vertx, option);
-        mqttClient.publishHandler(h->{
+        mqttClient.publishHandler(h -> {
             if (h.topicName().equals(MQTT_BT_SUBSCRIPTION)) {
-                logger.info("Message for "+ MQTT_BT_SUBSCRIPTION + " received.");
+                logger.info("Message for " + MQTT_BT_SUBSCRIPTION + " received.");
                 Buffer plkey = h.payload();
                 Secret secret = new Secret(plkey.getBytes());
                 EncryptionHelper encHelper = new EncryptionHelper();
                 byte[] toSend = encHelper.encrypt(secret, TESTPW.getBytes());
                 mqttClient.publish(MQTT_BT_PUBLISH,
-                        Buffer.buffer(toSend),
+                    Buffer.buffer(toSend),
+                    MqttQoS.AT_LEAST_ONCE,
+                    false,
+                    false,
+                    finishHandler -> {
+                        if (finishHandler.succeeded()) {
+                            logger.info(finishHandler.result());
+                        } else {
+                            logger.error("Error during publishing password", finishHandler.cause());
+                        }
+                    });
+            } else if (h.topicName().equals(MQTT_SUBSCRIPTION)) {
+                final Buffer payload = h.payload();
+                logger.info("Message for " + MQTT_SUBSCRIPTION + " received.");
+                logger.info("Message-Body:" + payload.toString());
+                if (payload.toString().contains("600,")) {
+                    mqttClient.publish(MQTT_PUBLISH,
+                        Buffer.buffer("15,mascot-testdevices1\n603,aaaa,bbbb"),
                         MqttQoS.AT_LEAST_ONCE,
                         false,
                         false,
@@ -61,13 +78,10 @@ public class MQTTTestClient extends AbstractVerticle {
                             if (finishHandler.succeeded()) {
                                 logger.info(finishHandler.result());
                             } else {
-                                logger.error("Error during publishing password", finishHandler.cause());
+                                logger.error("Error during publishing message", finishHandler.cause());
                             }
-                        });
-            }else if (h.topicName().equals(MQTT_SUBSCRIPTION)){
-                logger.info("Message for "+ MQTT_SUBSCRIPTION + " received.");
-                logger.info("Message-Body:"+ h.payload().toString());
-                Buffer payload = h.payload();
+                    });
+                }
             }
         });
         mqttClient.connect(BROKER_PORT, BROKER_HOST, ch -> {
@@ -78,17 +92,17 @@ public class MQTTTestClient extends AbstractVerticle {
                 if (periodicPublishing) {
                     vertx.setPeriodic(1000, t -> {
                         mqttClient.publish(MQTT_PUBLISH,
-                                Buffer.buffer(MESSAGE),
-                                MqttQoS.AT_LEAST_ONCE,
-                                false,
-                                false,
-                                finishHandler -> {
-                                    if (finishHandler.succeeded()) {
-                                        logger.info(finishHandler.result());
-                                    } else {
-                                        logger.error("Error during publishing message", finishHandler.cause());
-                                    }
-                                });
+                            Buffer.buffer(MESSAGE),
+                            MqttQoS.AT_LEAST_ONCE,
+                            false,
+                            false,
+                            finishHandler -> {
+                                if (finishHandler.succeeded()) {
+                                    logger.info(finishHandler.result());
+                                } else {
+                                    logger.error("Error during publishing message", finishHandler.cause());
+                                }
+                            });
                     });
                 }
             } else {
