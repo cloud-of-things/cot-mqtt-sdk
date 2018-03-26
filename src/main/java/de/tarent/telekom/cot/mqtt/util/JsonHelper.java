@@ -15,8 +15,97 @@ import java.util.Properties;
  * existence, etc.
  */
 public class JsonHelper {
+
+    /**
+     * (Integer) Key for the broker port.
+     */
+    public static final String BROKER_PORT_KEY = "brokerPort";
+
+    /**
+     * (String) Key for the broker URI.
+     */
+    public static final String BROKER_URI_KEY = "brokerURI";
+
+    /**
+     * (String) Key for the device ID.
+     */
+    public static final String DEVICE_ID_KEY = "deviceId";
+
+    /**
+     * (String) Key for the device name.
+     */
+    public static final String DEVICE_NAME_KEY = "deviceName";
+
+    /**
+     * (String) Key for the initial password for the bootstrapping process, which will in turn be used to encode the
+     * actual password.
+     */
+    public static final String INITIAL_PASSWORD_KEY = "initialPassword"; //NOSONAR - This is just a key, not a password.
+
+    /**
+     * (String) Key for the initial user for the bootstrapping process.
+     */
+    public static final String INITIAL_USER_KEY = "initialUser";
+
+    /**
+     * (String) Key for the message to be sent to the broker.
+     */
+    public static final String MESSAGE_KEY = "message";
+
+    /**
+     * (String) Key for the managed object's publish topic.
+     */
+    public static final String MO_PUBLISH_TOPIC_KEY = "moPublishTopic";
+
+    /**
+     * (String) Key for the managed object's subscribe topic.
+     */
+    public static final String MO_SUBSCRIBE_TOPIC_KEY = "moSubscribeTopic";
+
+    /**
+     * (String) Key for the password that was retreived from the bootstrapping process.
+     */
+    public static final String PASSWORD_KEY = "password"; //NOSONAR - This is just a key, not a password.
+
+    /**
+     * (String) Key for the publishing topic.
+     */
+    public static final String PUBLISH_TOPIC_KEY = "publishTopic";
+
+    /**
+     * (Integer) Key for the quality of service level. Default: 0
+     */
+    public static final String QOS_KEY = "QoS";
+
+    /**
+     * (Boolean) Key for the SSL status (on/off). Default: true
+     */
+    public static final String SSL_KEY = "ssl";
+
+    /**
+     * (String) Key for the topic to subscribe to.
+     */
+    public static final String SUBSCRIBE_TOPIC_KEY = "subscribeTopic";
+
+    /**
+     * (String) Key for the topic to unsubscribe from.
+     */
+    public static final String UNSUBSCRIBE_TOPIC_KEY = "unsubscribeTopic";
+
+    /**
+     * (String) Key for the user.
+     */
+    public static final String USER_KEY = "user";
+
+    /**
+     * Default path for the certificate *.jks file.
+     */
     static final String DEFAULT_KEYSTORE_PATH = "certificates/client.jks";
-    static final String DEFAULT_KEYSTORE_PASSWORD = "kVJEgEVwn3TB9BPA";
+
+    /**
+     * Default password for the default keystore.
+     */
+    static final String DEFAULT_KEYSTORE_PASSWORD = "kVJEgEVwn3TB9BPA"; //NOSONAR - Default password is OK here.
 
     private static final Logger logger = LoggerFactory.getLogger(JsonHelper.class);
 

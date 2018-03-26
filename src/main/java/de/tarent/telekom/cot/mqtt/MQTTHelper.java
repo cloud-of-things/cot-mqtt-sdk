@@ -14,6 +14,7 @@ import java.util.Properties;
 import java.util.function.Consumer;
 
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
+import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 
 /**
  * Helper class that starts our {@link io.vertx.core.Verticle}s and offers various methods for registering devices
@@ -29,7 +30,6 @@ public class MQTTHelper extends AbstractVerticle {
     private static final String REGISTER_PUBLISH_PREFIX = "ss/";
     private static final String MESSAGE_SUBSCRIBE_PREFIX = "mr/";
     private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
-    private static final String SMARTREST_XID = "mascot-testdevices1";
     private static MQTTHelper helper;
 
     private final Configuration config = new Configuration();
@@ -127,13 +127,13 @@ public class MQTTHelper extends AbstractVerticle {
     public void registerDevice(final String deviceId, final Properties prop, final Consumer<String> callback) {
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
-        msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
-        msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
-        msg.put("moPublishTopic", MESSAGE_PUBLISH_PREFIX + deviceId);
-        msg.put("moSubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-        msg.put("deviceId", deviceId);
-        msg.put("QoS", JsonHelper.getQoSValue(msg));
-        msg.put("ssl", JsonHelper.getSslValue(msg));
+        msg.put(PUBLISH_TOPIC_KEY, REGISTER_PUBLISH_PREFIX + deviceId);
+        msg.put(SUBSCRIBE_TOPIC_KEY, REGISTER_SUBSCRIBE_PREFIX + deviceId);
+        msg.put(MO_PUBLISH_TOPIC_KEY, MESSAGE_PUBLISH_PREFIX + deviceId);
+        msg.put(MO_SUBSCRIBE_TOPIC_KEY, MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+        msg.put(DEVICE_ID_KEY, deviceId);
+        msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
+        msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
         eventBus.publish("setConfig", msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
@@ -161,10 +161,10 @@ public class MQTTHelper extends AbstractVerticle {
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
         eventBus.publish("setConfig", msg);
-        msg.put("publishTopic", MESSAGE_PUBLISH_PREFIX + deviceId);
-        msg.put("message", message);
-        msg.put("QoS", JsonHelper.getQoSValue(msg));
-        msg.put("ssl", JsonHelper.getSslValue(msg));
+        msg.put(PUBLISH_TOPIC_KEY, MESSAGE_PUBLISH_PREFIX + deviceId);
+        msg.put(MESSAGE_KEY, message);
+        msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
+        msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
 
         eventBus.send("publish", msg, result -> {
             if (result.succeeded()) {
@@ -203,9 +203,9 @@ public class MQTTHelper extends AbstractVerticle {
                     && BOOTSTRAPPED.name().equals(bootstrappedProperty.getString("bootstrapped"))) {
 
                     final JsonObject msg = JsonHelper.from(prop);
-                    msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-                    msg.put("QoS", JsonHelper.getQoSValue(msg));
-                    msg.put("ssl", JsonHelper.getSslValue(msg));
+                    msg.put(SUBSCRIBE_TOPIC_KEY, MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+                    msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
+                    msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
 
                     eventBus.send("subscribe", msg, messageHandler -> {
                         if (messageHandler.succeeded()) {
@@ -237,9 +237,9 @@ public class MQTTHelper extends AbstractVerticle {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
-        msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-        msg.put("QoS", JsonHelper.getQoSValue(msg));
-        msg.put("ssl", JsonHelper.getSslValue(msg));
+        msg.put(UNSUBSCRIBE_TOPIC_KEY, MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+        msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
+        msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
 
         eventBus.send("unsubscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
