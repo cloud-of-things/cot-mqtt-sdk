@@ -97,7 +97,7 @@ public class BootstrapIT {
             context.assertNotNull(back);
             async.complete();
         });
-        async.awaitSuccess(30000);
+        async.awaitSuccess(5000);
     }
 
     @Test
@@ -133,7 +133,7 @@ public class BootstrapIT {
             }
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(5000);
     }
 
 }
