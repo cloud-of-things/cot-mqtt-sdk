@@ -45,10 +45,10 @@ public class BootstrapIT {
     @Before
     public void before(TestContext context) throws InterruptedException{
         helper = MQTTHelper.getInstance();
-        Thread.sleep(500);
+        Thread.sleep(500); //NOSONAR - This is in a test, it's OK.
         EventBus eb = helper.getVertx().eventBus();
         eb.publish("resetConfig", new JsonObject());
-        Thread.sleep(500);
+        Thread.sleep(500); //NOSONAR - This is in a test, it's OK.
     }
 
     @After
@@ -61,7 +61,7 @@ public class BootstrapIT {
                 logger.error("error during undeployment of helper", h.cause());
             }
         });
-        Thread.sleep(1000);
+        Thread.sleep(1000); //NOSONAR - This is in a test, it's OK.
     }
 
     @Test
