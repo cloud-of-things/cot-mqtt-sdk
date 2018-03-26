@@ -9,7 +9,11 @@ import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
 
 public class ConfigHelper {
 
-    public static Future<JsonObject> getConfigFuture(EventBus eb) {
+    private ConfigHelper() {
+        // Private constructor to prevent instantiation.
+    }
+
+    public static Future<JsonObject> getConfigFuture(final EventBus eb) {
 
         final Future<JsonObject> future = Future.future();
         final JsonObject params = new JsonObject().put("keys",

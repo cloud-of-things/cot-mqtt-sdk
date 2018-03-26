@@ -17,10 +17,10 @@ import io.vertx.core.logging.LoggerFactory;
 public class Configuration extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
+    private static final String CONFIG_PATH_KEY = "configPath";
 
     private final JsonObject conf = new JsonObject();
     private final JsonObject sysConf = new JsonObject();
-    private final String configPathKey = "configPath";
 
 
     @Override
@@ -57,7 +57,7 @@ public class Configuration extends AbstractVerticle {
         final FileSystem fs = vertx.fileSystem();
         final String dir = sysConf.getString("user.home") + "/.nbiot";
         final String path = dir + "/config.json";
-        sysConf.put(configPathKey, path);
+        sysConf.put(CONFIG_PATH_KEY, path);
         fs.exists(path, fh -> {
             if (fh.succeeded() && fh.result()) {
                 readFile(fs, path);
@@ -92,7 +92,7 @@ public class Configuration extends AbstractVerticle {
     private void setConfig(final JsonObject obj) {
         conf.mergeIn(obj);
         final FileSystem fs = vertx.fileSystem();
-        fs.writeFile(sysConf.getString(configPathKey), Buffer.buffer(conf.encodePrettily()), fh -> {
+        fs.writeFile(sysConf.getString(CONFIG_PATH_KEY), Buffer.buffer(conf.encodePrettily()), fh -> {
             if (fh.succeeded()) {
                 logger.info("configuration saved");
             } else {
@@ -118,7 +118,7 @@ public class Configuration extends AbstractVerticle {
     private void resetConfig() {
         conf.clear();
         final FileSystem fs = vertx.fileSystem();
-        fs.writeFile(sysConf.getString(configPathKey),
+        fs.writeFile(sysConf.getString(CONFIG_PATH_KEY),
             Buffer.buffer(conf.encode()),
             fh -> logger.info("configuration cleared"));
     }

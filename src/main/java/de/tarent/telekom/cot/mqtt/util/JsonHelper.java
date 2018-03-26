@@ -123,9 +123,7 @@ public class JsonHelper {
      */
     public static JsonObject from(final Properties prop) {
         final JsonObject out = new JsonObject();
-        prop.stringPropertyNames().forEach(k -> {
-            out.put(k, prop.getProperty(k));
-        });
+        prop.stringPropertyNames().forEach(k -> out.put(k, prop.getProperty(k)));
         return out;
     }
 

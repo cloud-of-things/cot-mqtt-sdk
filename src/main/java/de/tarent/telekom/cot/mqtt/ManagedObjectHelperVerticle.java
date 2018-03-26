@@ -1,5 +1,6 @@
 package de.tarent.telekom.cot.mqtt;
 
+import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import de.tarent.telekom.cot.mqtt.util.SmartREST;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
@@ -8,7 +9,6 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
@@ -16,8 +16,8 @@ import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 
 public class ManagedObjectHelperVerticle extends AbstractVerticle {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapVerticle.class);
-    private final String CLOUD_PASSWORD_KEY = "cloudPassword";
-    private final String XID_KEY = "xId";
+    private static final String CLOUD_PASSWORD_KEY = "cloudPassword"; //NOSONAR - This is just a key, not a password.
+    private static final String XID_KEY = "xId";
 
     private MqttClient client;
 
@@ -42,7 +42,7 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
             .setUsername(deviceId)
             .setAutoKeepAlive(true);
 
-        setSslOptions(options, msg.getBoolean(SSL_KEY));
+        JsonHelper.setSslOptions(options, msg);
 
         final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
         client = MqttClient.create(vertx, options);
@@ -71,10 +71,10 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
                     eb.publish("setConfig", managedObject);
 
                     String registerICCIDString = SmartREST.getPayloadRegisterICCIDasExternalId(msg.getString(XID_KEY), parsedPayload[2], msg.getString("deviceId"));
-                    MOPublish(client, msg.getString("moPublishTopic"), registerICCIDString);
+                    MOPublish(client, msg.getString(MO_PUBLISH_TOPIC_KEY), registerICCIDString);
                     String updateOperationsString = SmartREST.getPayloadUpdateOperations(msg.getString(XID_KEY), parsedPayload[2]);
-                    MOPublish(client, msg.getString("moPublishTopic"), updateOperationsString);
-                    client.unsubscribe(msg.getString("moSubscribeTopic"));
+                    MOPublish(client, msg.getString(MO_PUBLISH_TOPIC_KEY), updateOperationsString);
+                    client.unsubscribe(msg.getString(MO_SUBSCRIBE_TOPIC_KEY));
                     client.disconnect();
 
                     eb.publish("managedObjectCreated", managedObject);
@@ -83,13 +83,13 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
         });
 
 
-        client.connect(port,  msg.getString("brokerURI"), ch -> {
+        client.connect(port,  msg.getString(BROKER_URI_KEY), ch -> {
             if (ch.succeeded()) {
                 LOGGER.info("Connected to a server");
-                client.subscribe(msg.getString("moSubscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
+                client.subscribe(msg.getString(MO_SUBSCRIBE_TOPIC_KEY), MqttQoS.AT_MOST_ONCE.value(),
                     d -> {
                     });
-                MOPublish(client, msg.getString("moPublishTopic"), SmartREST.getPayloadCheckManagedObject("mascot-testdevices1", msg.getString("deviceId")));
+                MOPublish(client, msg.getString(MO_PUBLISH_TOPIC_KEY), SmartREST.getPayloadCheckManagedObject("mascot-testdevices1", msg.getString(DEVICE_ID_KEY)));
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
             }
@@ -107,14 +107,6 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
             k -> {
             }
         );
-    }
-
-    private void setSslOptions(final MqttClientOptions options, final boolean ssl) {
-        if (ssl) {
-            options
-                .setSsl(true)
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
-        }
     }
 
 }

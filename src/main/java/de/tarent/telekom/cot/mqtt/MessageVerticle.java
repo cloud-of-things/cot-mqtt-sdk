@@ -20,6 +20,8 @@ import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 public class MessageVerticle extends AbstractVerticle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageVerticle.class);
+    private static final String connectedToAServerMessage = "Connected to a server";
+    private static final String failedToConnectToAServerMessage = "Failed to connect to a server";
 
     private MqttClient client;
 
@@ -27,17 +29,11 @@ public class MessageVerticle extends AbstractVerticle {
     public void start() {
         final EventBus eventBus = vertx.eventBus();
 
-        eventBus.consumer("publish", msg -> {
-            publishMessage((JsonObject) msg.body(), msg);
-        });
+        eventBus.consumer("publish", msg -> publishMessage((JsonObject) msg.body(), msg));
 
-        eventBus.consumer("subscribe", msg -> {
-            subscribeToTopic((JsonObject) msg.body(), msg);
-        });
+        eventBus.consumer("subscribe", msg -> subscribeToTopic((JsonObject) msg.body(), msg));
 
-        eventBus.consumer("unsubscribe", msg -> {
-            unsubscribeFromTopic((JsonObject) msg.body(), msg);
-        });
+        eventBus.consumer("unsubscribe", msg -> unsubscribeFromTopic((JsonObject) msg.body(), msg));
     }
 
 
@@ -66,10 +62,10 @@ public class MessageVerticle extends AbstractVerticle {
         } else {
             client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info("Connected to a server");
+                    LOGGER.info(connectedToAServerMessage);
                     publish(msg, handle);
                 } else {
-                    LOGGER.error("Failed to connect to a server", ch.cause());
+                    LOGGER.error(failedToConnectToAServerMessage, ch.cause());
                 }
             });
         }
@@ -117,10 +113,10 @@ public class MessageVerticle extends AbstractVerticle {
         } else {
             client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info("Connected to a server");
+                    LOGGER.info(connectedToAServerMessage);
                     subscribe(msg, handle);
                 } else {
-                    LOGGER.error("Failed to connect to a server", ch.cause());
+                    LOGGER.error(failedToConnectToAServerMessage, ch.cause());
                 }
             });
         }
@@ -146,10 +142,10 @@ public class MessageVerticle extends AbstractVerticle {
         } else {
             client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info("Connected to a server");
+                    LOGGER.info(connectedToAServerMessage);
                     unsubscribe(msg, handle);
                 } else {
-                    LOGGER.error("Failed to connect to a server", ch.cause());
+                    LOGGER.error(failedToConnectToAServerMessage, ch.cause());
                 }
             });
         }
