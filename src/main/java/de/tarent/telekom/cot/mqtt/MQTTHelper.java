@@ -139,7 +139,6 @@ public class MQTTHelper extends AbstractVerticle {
         eventBus.consumer("bootstrapComplete", result -> {
             final JsonObject registeredResult = (JsonObject) result.body();
             eventBus.publish("setConfig", registeredResult);
-            //ToDo:prepare ReturnMSG
             callback.accept(registeredResult.getString("password"));
         });
 
@@ -169,7 +168,6 @@ public class MQTTHelper extends AbstractVerticle {
         eventBus.send("publish", msg, result -> {
             if (result.succeeded()) {
                 final JsonObject registeredResult = (JsonObject) result.result().body();
-                //ToDo:prepare ReturnMSG
                 callback.accept(registeredResult.getBoolean("published"));
             } else {
                 logger.error("Sending message failed - ", result.cause());
