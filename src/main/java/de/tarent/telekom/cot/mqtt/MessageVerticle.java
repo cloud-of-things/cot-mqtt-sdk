@@ -20,8 +20,8 @@ import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 public class MessageVerticle extends AbstractVerticle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageVerticle.class);
-    private static final String connectedToAServerMessage = "Connected to a server";
-    private static final String failedToConnectToAServerMessage = "Failed to connect to a server";
+    private static final String CONNECTED_TO_A_SERVER_MESSAGE = "Connected to a server";
+    private static final String FAILED_TO_CONNECT_TO_A_SERVER_MESSAGE = "Failed to connect to a server";
 
     private MqttClient client;
 
@@ -62,10 +62,10 @@ public class MessageVerticle extends AbstractVerticle {
         } else {
             client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info(connectedToAServerMessage);
+                    LOGGER.info(CONNECTED_TO_A_SERVER_MESSAGE);
                     publish(msg, handle);
                 } else {
-                    LOGGER.error(failedToConnectToAServerMessage, ch.cause());
+                    LOGGER.error(FAILED_TO_CONNECT_TO_A_SERVER_MESSAGE, ch.cause());
                 }
             });
         }
@@ -113,10 +113,10 @@ public class MessageVerticle extends AbstractVerticle {
         } else {
             client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info(connectedToAServerMessage);
+                    LOGGER.info(CONNECTED_TO_A_SERVER_MESSAGE);
                     subscribe(msg, handle);
                 } else {
-                    LOGGER.error(failedToConnectToAServerMessage, ch.cause());
+                    LOGGER.error(FAILED_TO_CONNECT_TO_A_SERVER_MESSAGE, ch.cause());
                 }
             });
         }
@@ -142,10 +142,10 @@ public class MessageVerticle extends AbstractVerticle {
         } else {
             client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info(connectedToAServerMessage);
+                    LOGGER.info(CONNECTED_TO_A_SERVER_MESSAGE);
                     unsubscribe(msg, handle);
                 } else {
-                    LOGGER.error(failedToConnectToAServerMessage, ch.cause());
+                    LOGGER.error(FAILED_TO_CONNECT_TO_A_SERVER_MESSAGE, ch.cause());
                 }
             });
         }

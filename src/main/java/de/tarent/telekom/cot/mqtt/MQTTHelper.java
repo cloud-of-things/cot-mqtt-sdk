@@ -30,6 +30,8 @@ public class MQTTHelper extends AbstractVerticle {
     private static final String REGISTER_PUBLISH_PREFIX = "ss/";
     private static final String MESSAGE_SUBSCRIBE_PREFIX = "mr/";
     private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
+    private static final String SET_CONFIG_KEY = "setConfig";
+    private static final String BOOTSTRAPPED_KEY = "bootstrapped";
     private static MQTTHelper helper;
 
     private final Configuration config = new Configuration();
@@ -110,9 +112,7 @@ public class MQTTHelper extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
-        deploymentIds.forEach(id -> {
-            vertx.undeploy(id);
-        });
+        deploymentIds.forEach(vertx::undeploy);
         helper = null;
     }
 
@@ -134,11 +134,11 @@ public class MQTTHelper extends AbstractVerticle {
         msg.put(DEVICE_ID_KEY, deviceId);
         msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
         msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
-        eventBus.publish("setConfig", msg);
+        eventBus.publish(SET_CONFIG_KEY, msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
             final JsonObject registeredResult = (JsonObject) result.body();
-            eventBus.publish("setConfig", registeredResult);
+            eventBus.publish(SET_CONFIG_KEY, registeredResult);
             callback.accept(registeredResult.getString("password"));
         });
 
@@ -159,7 +159,7 @@ public class MQTTHelper extends AbstractVerticle {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
-        eventBus.publish("setConfig", msg);
+        eventBus.publish(SET_CONFIG_KEY, msg);
         msg.put(PUBLISH_TOPIC_KEY, MESSAGE_PUBLISH_PREFIX + deviceId);
         msg.put(MESSAGE_KEY, message);
         msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
@@ -192,13 +192,13 @@ public class MQTTHelper extends AbstractVerticle {
             callback.accept(registeredResult.getString("received"));
         });
 
-        final JsonObject question = new JsonObject().put("key", "bootstrapped");
+        final JsonObject question = new JsonObject().put("key", BOOTSTRAPPED_KEY);
 
         eventBus.send("config", question, r -> {
             if (r.succeeded()) {
                 final JsonObject bootstrappedProperty = (JsonObject) r.result().body();
-                if (bootstrappedProperty != null && bootstrappedProperty.getString("bootstrapped") != null
-                    && BOOTSTRAPPED.name().equals(bootstrappedProperty.getString("bootstrapped"))) {
+                if (bootstrappedProperty != null && bootstrappedProperty.getString(BOOTSTRAPPED_KEY) != null
+                    && BOOTSTRAPPED.name().equals(bootstrappedProperty.getString(BOOTSTRAPPED_KEY))) {
 
                     final JsonObject msg = JsonHelper.from(prop);
                     msg.put(SUBSCRIBE_TOPIC_KEY, MESSAGE_SUBSCRIBE_PREFIX + deviceId);
