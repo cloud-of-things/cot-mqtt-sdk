@@ -14,7 +14,7 @@ import io.vertx.mqtt.MqttClientOptions;
 
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.ONGOING;
-
+import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 
 public class BootstrapVerticle extends AbstractVerticle {
 
@@ -37,8 +37,8 @@ public class BootstrapVerticle extends AbstractVerticle {
         final Future<JsonObject> config = ConfigHelper.getConfigFuture(eb);
         LOGGER.info(msg.encodePrettily());
         final MqttClientOptions options = new MqttClientOptions()
-            .setPassword(msg.getString("initialPassword"))
-            .setUsername(msg.getString("initialUser"))
+            .setPassword(msg.getString(INITIAL_PASSWORD_KEY))
+            .setUsername(msg.getString(INITIAL_USER_KEY))
             .setAutoKeepAlive(true);
 
         JsonHelper.setSslOptions(options, msg);
@@ -70,12 +70,12 @@ public class BootstrapVerticle extends AbstractVerticle {
                 } else if (bootstrapped == ONGOING) {
                     setPublishHandler(msg, secret);
                     LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
-                    final int port = Integer.parseInt(msg.getString("brokerPort"));
-                    client.connect(port, msg.getString("brokerURI"), ch -> {
+                    final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
+                    client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                         if (ch.succeeded()) {
                             LOGGER.info("Connected to a server");
                             client.subscribe(msg.getString(subscribeTopicKey),
-                                MqttQoS.valueOf(msg.getInteger("QoS")).value());
+                                MqttQoS.valueOf(msg.getInteger(QOS_KEY)).value());
                         }
                     });
                 }
@@ -86,13 +86,13 @@ public class BootstrapVerticle extends AbstractVerticle {
 
     private void setPublishHandler(final JsonObject msg, final String secret) {
         client.publishHandler(s -> {
-            if (s.topicName().equals(msg.getString("subscribeTopic"))) {
+            if (s.topicName().equals(msg.getString(SUBSCRIBE_TOPIC_KEY))) {
                 LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"",
                     s.payload().toString("utf-8"),
                     s.topicName()));
                 final EncryptionHelper ech = new EncryptionHelper();
                 final byte[] pass = ech.decrypt(new Secret(secret), s.payload().getBytes());
-                client.unsubscribe(msg.getString("subscribeTopic"));
+                client.unsubscribe(msg.getString(SUBSCRIBE_TOPIC_KEY));
                 client.disconnect();
 
                 final JsonObject replyObject = new JsonObject();
@@ -120,17 +120,17 @@ public class BootstrapVerticle extends AbstractVerticle {
 
     private void connectAndPublish(final JsonObject msg, final String secret) {
         //connect and publish on /iccid
-        final int port = Integer.parseInt(msg.getString("brokerPort"));
-        client.connect(port, msg.getString("brokerURI"), ch -> {
+        final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
+        client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
             if (ch.succeeded()) {
                 LOGGER.info("Connected to a server");
-                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value());
+                client.subscribe(msg.getString(SUBSCRIBE_TOPIC_KEY), MqttQoS.valueOf(msg.getInteger(QOS_KEY)).value());
 
                 final JsonObject configParams = new JsonObject();
 
-                client.publish(msg.getValue("publishTopic").toString(),
+                client.publish(msg.getValue(PUBLISH_TOPIC_KEY).toString(),
                     Buffer.buffer(secret),
-                    MqttQoS.valueOf(msg.getInteger("QoS")),
+                    MqttQoS.valueOf(msg.getInteger(QOS_KEY)),
                     false,
                     false,
                     s -> {

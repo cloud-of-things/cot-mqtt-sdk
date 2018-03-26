@@ -12,8 +12,12 @@ import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
+import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
+
 public class ManagedObjectHelperVerticle extends AbstractVerticle {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapVerticle.class);
+    private final String CLOUD_PASSWORD_KEY = "cloudPassword";
+    private final String XID_KEY = "xId";
 
     private MqttClient client;
 
@@ -30,28 +34,29 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
 
     private void createManagedObject(JsonObject msg) {
 
-        final String deviceId = msg.getString("deviceId");
-        final String password = msg.getString("cloudPassword");
+        final String deviceId = msg.getString(DEVICE_ID_KEY);
+        final String password = msg.getString(CLOUD_PASSWORD_KEY);
 
         final MqttClientOptions options = new MqttClientOptions()
             .setPassword(password)
             .setUsername(deviceId)
             .setAutoKeepAlive(true);
 
-        setSslOptions(options, msg.getBoolean("ssl"));
+        setSslOptions(options, msg.getBoolean(SSL_KEY));
 
-        final int port = Integer.parseInt(msg.getString("brokerPort"));
+        final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
         client = MqttClient.create(vertx, options);
 
         client.publishHandler(h -> {
             LOGGER.info("Message with topic " + h.topicName() + " with QOS " + h.qosLevel().name() + " received");
-            if (h.topicName().equals(msg.getString("moSubscribeTopic"))) {
+            if (h.topicName().equals(msg.getString(MO_SUBSCRIBE_TOPIC_KEY))) {
 
                 String[] parsedPayload = SmartREST.parseResponsePayload(h.payload());
                 //object doesnt exist
                 if (parsedPayload[0].equals("50") && parsedPayload[2].equals("404")) {
-                    String message = SmartREST.getPayloadSelfCreationRequest(msg.getString("xId"), msg.getString("deviceId"), "deviceName");
-                    MOPublish(client, msg.getString("moPublishTopic"), message);
+                    String message = SmartREST.getPayloadSelfCreationRequest(msg.getString(XID_KEY), msg.getString(DEVICE_ID_KEY),
+                        DEVICE_NAME_KEY);
+                    MOPublish(client, msg.getString(MO_PUBLISH_TOPIC_KEY), message);
                 }
                 //object already exists
                 else if (parsedPayload[0].equals("601")) {
@@ -65,9 +70,9 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
                     managedObject.put("managedObjectId", parsedPayload[2]);
                     eb.publish("setConfig", managedObject);
 
-                    String registerICCIDString = SmartREST.getPayloadRegisterICCIDasExternalId(msg.getString("xId"), parsedPayload[2], msg.getString("deviceId"));
+                    String registerICCIDString = SmartREST.getPayloadRegisterICCIDasExternalId(msg.getString(XID_KEY), parsedPayload[2], msg.getString("deviceId"));
                     MOPublish(client, msg.getString("moPublishTopic"), registerICCIDString);
-                    String updateOperationsString = SmartREST.getPayloadUpdateOperations(msg.getString("xId"), parsedPayload[2]);
+                    String updateOperationsString = SmartREST.getPayloadUpdateOperations(msg.getString(XID_KEY), parsedPayload[2]);
                     MOPublish(client, msg.getString("moPublishTopic"), updateOperationsString);
                     client.unsubscribe(msg.getString("moSubscribeTopic"));
                     client.disconnect();

@@ -10,14 +10,11 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Properties;
-import java.util.Set;
 
 
 @RunWith(VertxUnitRunner.class)
@@ -37,7 +34,7 @@ public class MQTTHelperIT {
         prop.setProperty("secret", "1234567890abcdef");
         JsonObject conf = JsonHelper.from(prop);
         helper = MQTTHelper.getInstance();
-        Thread.sleep(1000);
+        Thread.sleep(1000); //NOSONAR - This is in a test, it's OK.
         Vertx vertx = helper.getVertx();
         EventBus eb = vertx.eventBus();
         eb.publish("setConfig", conf);
@@ -73,7 +70,7 @@ public class MQTTHelperIT {
         JsonObject toSet = new JsonObject().put("testKey", "testVal");
         Async async = context.async();
         eb.publish("setConfig", toSet);
-        Thread.sleep(1000);
+        Thread.sleep(1000); //NOSONAR - This is in a test, it's OK.
         JsonObject question = new JsonObject().put("key", "testKey");
         eb.send("config", question, r -> {
             if (r.succeeded()) {
