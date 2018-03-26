@@ -109,6 +109,11 @@ public class JsonHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonHelper.class);
 
+
+    private JsonHelper() {
+        // Private default constructor to prevent instantiation.
+    }
+
     /**
      * Converts the given {@link Properties} into a {@link JsonObject} as simple key value pairs. All values are used as
      * Strings.
