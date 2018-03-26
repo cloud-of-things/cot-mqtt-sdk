@@ -15,7 +15,7 @@ import io.vertx.mqtt.MqttClientOptions;
 import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 
 public class ManagedObjectHelperVerticle extends AbstractVerticle {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapVerticle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ManagedObjectHelperVerticle.class);
     private static final String CLOUD_PASSWORD_KEY = "cloudPassword"; //NOSONAR - This is just a key, not a password.
     private static final String XID_KEY = "xId";
 
