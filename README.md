@@ -22,6 +22,14 @@ compile "de.tarent.telekom.cot:nbiot-mqtt:0.5.2-SNAPSHOT"
 #### Das Repository befindet sich hier:
 https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/
 
+bzw. unter
+
+https://github.com/cloud-of-things/cot-mqtt-sdk
+
+#### JavaDocs
+
+The API docs are located in https://cloud-of-things.github.io/cot-mqtt-sdk/
+
 
 ### Anleitung
 Nachdem man das SDK in seinem Projekt eingebunden hat, kann man über die Methode `getInstance()` das SDK initialisieren.
