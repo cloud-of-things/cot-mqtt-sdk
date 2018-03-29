@@ -34,10 +34,10 @@ public class JsonHelperTest {
     @Test
     public void testGetQoSValue() {
         final JsonObject msg = new JsonObject();
-        assertEquals(AT_MOST_ONCE.value(), getQoSValue(msg));
+        assertEquals(AT_LEAST_ONCE.value(), getQoSValue(msg));
 
         msg.put("QoS", "asdfghjkl");
-        assertEquals(AT_MOST_ONCE.value(), getQoSValue(msg));
+        assertEquals(AT_LEAST_ONCE.value(), getQoSValue(msg));
 
         msg.put("QoS", "0");
         assertEquals(AT_MOST_ONCE.value(), getQoSValue(msg));
@@ -49,7 +49,7 @@ public class JsonHelperTest {
         assertEquals(EXACTLY_ONCE.value(), getQoSValue(msg));
 
         msg.put("QoS", "3");
-        assertEquals(AT_MOST_ONCE.value(), getQoSValue(msg));
+        assertEquals(AT_LEAST_ONCE.value(), getQoSValue(msg));
     }
 
     @Test
