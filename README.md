@@ -75,6 +75,7 @@ Furthermore, all methods require a **Callback** so that the method results can
 be returned.
 
 ###Release notes
+
 ####Version 0.5.2-SNAPSHOT
 - *bootstrapping* - nbIoT-devices can now be bootstrapped and receives the
 credentials from CoT, persists device data in the nbIoT environment and creates
