@@ -28,8 +28,13 @@ Nachdem man das SDK in seinem Projekt eingebunden hat, kann man über die Method
 _Im Falle, dass man selbst eine Vert.x-Anwendung entwickelt sollte man dieser die vertx Instanz mitgeben._
 
 #### Verfügbare Methoden:
-**registerDevice** - Handelt den Bootstrapping Vorgang ab und liefert das Passwort zurück. Bekommt die **DeviceID(ICCID)** übergeben 
-und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für _initialPassword, initialUser, brokerPort, brokerURI, QoS (optional)_.
+**registerDevice** - Handelt den Bootstrapping Vorgang ab und liefert das Passwort für die IoT-Cloud zurück, sowie die ID, des generierten 
+Managed Objects in der Cloud. Bekommt die **DeviceID(ICCID)** übergeben 
+und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für 
+_initialPassword, initialUser, brokerPort, brokerURI, QoS (optional) und der xID_ für der SmartREST Templates im CoT-Tenant.
+Die Methode erstellt weiterhin, nach erfolgreichem Erhalt der Credentials, das ManagedObject für das Device in der CoT hinzu und fügt diesem 
+die notwendigen Fragmente zum Erhalt von Commands hinzu. Damit der Bootstrap-Vorgang abgehandelt werden kann, ist es zwingend erforderlich, dass die in der
+MOCreationTemplates gespeicherten SmartREST-Templates zusätzlich zu den eigenen SmartREST-Templates in den CoT-Tenant eingepflegt sind.
 
 **subscribeToTopic** - Erstellt eine Subscription am gewünschten Broker für das Device. Bekommt die **DeviceID(ICCID)** übergeben 
 und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für _password, user, brokerPort, brokerURI, QoS (optional)_.
