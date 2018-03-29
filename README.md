@@ -1,10 +1,10 @@
 ## API to service access to the MQTT broker for bootstrapping and CoT interaction
 
-Das NBIOT-MQTT SDK ermöglicht es Device-Entwicklern den Bootstrap-Vorgang gegen die **Cumulocity** 
-und anschliessendes Subscriben und Publishen am **MQTT Broker** durchzuführen ohne diese selbst zu implementieren. 
-Das SDK baut auf **Vert.x** auf.
+The nbIoT-MQTT API allows device developers to bootstrap their devices against
+**Cumulocity** and allows subscribing and publishing with the **MQTT-Broker**
+without having to implement it themselves. The API is based on **Vert.x**.
 
-### Das SDK in Projekten Einbinden
+### Include the API in a project
 **Maven**:
 ```xml
 <dependency>
@@ -19,7 +19,7 @@ Das SDK baut auf **Vert.x** auf.
 compile "de.tarent.telekom.cot:nbiot-mqtt:0.5.2-SNAPSHOT"
 ```
 
-#### Das Repository befindet sich hier:
+#### You can find the repository here:
 https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/
 
 bzw. unter
@@ -31,30 +31,53 @@ https://github.com/cloud-of-things/cot-mqtt-sdk
 The API docs are located in https://cloud-of-things.github.io/cot-mqtt-sdk/
 
 
-### Anleitung
-Nachdem man das SDK in seinem Projekt eingebunden hat, kann man über die Methode `getInstance()` das SDK initialisieren.
-_Im Falle, dass man selbst eine Vert.x-Anwendung entwickelt sollte man dieser die vertx Instanz mitgeben._
+### Instructions
+After the API is included in your Project, you can use the method `getInstance()` to
+initialise the API. _In case you implemented your own Vert.x instance, you
+should pass your instance in the aforementioned mentioned method (`getInstance(Vertx)`)._
 
-#### Verfügbare Methoden:
-**registerDevice** - Handelt den Bootstrapping Vorgang ab und liefert das Passwort für die IoT-Cloud zurück, sowie die ID, des generierten 
-Managed Objects in der Cloud. Bekommt die **DeviceID(ICCID)** übergeben 
-und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für 
-_initialPassword, initialUser, brokerPort, brokerURI, QoS (optional) und der xID_ für der SmartREST Templates im CoT-Tenant.
-Die Methode erstellt weiterhin, nach erfolgreichem Erhalt der Credentials, das ManagedObject für das Device in der CoT hinzu und fügt diesem 
-die notwendigen Fragmente zum Erhalt von Commands hinzu. Damit der Bootstrap-Vorgang abgehandelt werden kann, ist es zwingend erforderlich, dass die in der
-MOCreationTemplates gespeicherten SmartREST-Templates zusätzlich zu den eigenen SmartREST-Templates in den CoT-Tenant eingepflegt sind.
+#### Available methods:
+**registerDevice** - Handles the bootstrapping process and returns the encoded password
+created for the IoT cloud plus the ID of the generated managed objects in the cloud.
+The method requires the **DeviceId(ICCID)** and a **Property** object of the type
+`java.util.Properties` as parameters. The Property object should hold the following
+values: _initialPassword, initialUser, brokerPort, brokerURI, QoS (optional) and
+the xID_ for the SmartREST templates found on the CoT tenant. After successfully 
+receiving the credentials, the method creates the ManagedObject for the device in
+the CoT and adds the necessary fragments for receiving commands. So that the bootstrap
+process can be properly processed, it's important that the SmartREST templates
+stored in the MOCReationTemplates are added to the CoT tenant on top of your
+own SmartREST templates.
 
-**subscribeToTopic** - Erstellt eine Subscription am gewünschten Broker für das Device. Bekommt die **DeviceID(ICCID)** übergeben 
-und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für _password, user, brokerPort, brokerURI, QoS (optional)_.
+**subscribeToTopic** - Creates a subscription on the desired broker for the device.
+The method requires the **DeviceId(ICCID)** and a **Property** object of the type
+`java.util.Properties` as parameters. The Property object should hold the following
+values: _password, user, brokerPort, brokerURI, QoS (optional)_.
 
-**publishMessage** - Veröffentlicht auf dem für das Device entsprechenden Kanal eine **Message**, die als Parameter übergeben wird. 
-Bekommt weiterhin die **DeviceID(ICCID)** und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für _password, user, brokerPort, 
-brokerURI, QoS (optional)_ übergeben.
+**publishTopic** - Publishes a given **message** parameter on the Device's channel.
+The method requires the **DeviceId(ICCID)** and a **Property** object of the type
+`java.util.Properties` as parameters. The Property object should hold the following
+values: _password, user, brokerPort, brokerURI, QoS (optional)_.
 
-#### Sonstiges:
-_**SSL**_ kann ausgeschaltet werden indem Man eine Property "ssl", "false" eingibt (Default ist true). Wenn man aber SSL verwenden will, muss eine Directory "certificates" angeleget werden, wo das jar liegt, und eine client.jsk mit beide Zertifikaten angelegt werden mit folgenden Passwort: kVJEgEVwn3TB9BPA
-Alternativ kann eine selbst angelegten Keystore und Passwort verwendet werden mit folgende Properties: "keyStorePath", <pathToKeystore>; "keyStorePassword", <keyStorePassword>
+#### Other important information:
+_**SSL**_ This value can be turned off if the property `"ssl", "false"` ist set in
+the Property object given in the above methods. If you want to use SSL, then you have
+to either set the following Properties: `"keyStorePath", <pathToKeystore>`;
+`"keyStorePassword", <keyStorePassword>` or create a Directory where the jar
+file exists called "certificates" and place a client.jks file that contains both
+certificates and uses the password "kVJEgEVwn3TB9BPA" within.
 
-_**QoS**_ muss einer von folgende Werte haben: **0** (at most once), **1** (at least once), **2** (exactly once), oder leer gelassen werden, wenn es egal ist. _Default ist immer **1** (at least once)_. 
+_**QoS**_ Needs to have one of the following values: **0** (at most once), **1** 
+(at least once), **2** (exactly once), or left empty if it doesn't matter. _The
+default is always **1** (at least once)_.
 
-Weiterhin muss allen Methoden ein **Callback** übergeben werden, über das die Ergebnisse der Methoden zurückgegeben werden.
+Furthermore, all methods require a **Callback** so that the method results can
+be returned.
+
+###Release notes
+####Version 0.5.2-SNAPSHOT
+- *bootstrapping* - nbIoT-devices can now be bootstrapped and receives the
+credentials from CoT, persists device data in the nbIoT environment and creates
+managed Objects over SmartREST for shell access.
+- *messaging* - API helps the devices with subscribing on topics to receive messages
+from the MQTT-Broker and helps with sending SmartREST messages to the CoT.
