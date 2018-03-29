@@ -42,6 +42,6 @@ brokerURI, QoS (optional)_ übergeben.
 _**SSL**_ kann ausgeschaltet werden indem Man eine Property "ssl", "false" eingibt (Default ist true). Wenn man aber SSL verwenden will, muss eine Directory "certificates" angeleget werden, wo das jar liegt, und eine client.jsk mit beide Zertifikaten angelegt werden mit folgenden Passwort: kVJEgEVwn3TB9BPA
 Alternativ kann eine selbst angelegten Keystore und Passwort verwendet werden mit folgende Properties: "keyStorePath", <pathToKeystore>; "keyStorePassword", <keyStorePassword>
 
-_**QoS**_ muss einer von folgende Werte haben: **0** (at most once), **1** (at least once), **2** (exactly once), oder leer gelassen werden, wenn es egal ist. _Default ist immer **0** (at most once)_. 
+_**QoS**_ muss einer von folgende Werte haben: **0** (at most once), **1** (at least once), **2** (exactly once), oder leer gelassen werden, wenn es egal ist. _Default ist immer **1** (at least once)_. 
 
 Weiterhin muss allen Methoden ein **Callback** übergeben werden, über das die Ergebnisse der Methoden zurückgegeben werden.

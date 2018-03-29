@@ -134,12 +134,12 @@ public class JsonHelper {
      * @return the value of the "QoS" key or 0 if any invalid values are given
      */
     public static int getQoSValue(final JsonObject msg) {
-        int qualityOfService = 0;
+        int qualityOfService = 1;
 
         try {
             qualityOfService = Integer.parseInt(msg.getString("QoS"));
         } catch (final NumberFormatException e) {
-            logger.error("Error while parsing QoS value, using default value of 0.");
+            logger.error("Error while parsing QoS value, using default value of 1.");
         }
 
         for (final MqttQoS mqttQoS : MqttQoS.values()) {
@@ -148,7 +148,7 @@ public class JsonHelper {
             }
         }
 
-        return MqttQoS.AT_MOST_ONCE.value();
+        return MqttQoS.AT_LEAST_ONCE.value();
     }
 
     /**
