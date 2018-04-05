@@ -152,7 +152,7 @@ public class MQTTHelper extends AbstractVerticle {
      * @param deviceId the given device with which to publish the message
      * @param message  the given message which should be published
      * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials, QoS...)
-     * @param callback the callback function to receive the created credentials
+     * @param callback the callback function to receive the message publish status
      */
     public void publishMessage(final String deviceId, final String message, final Properties prop,
         final Consumer<Boolean> callback) {
