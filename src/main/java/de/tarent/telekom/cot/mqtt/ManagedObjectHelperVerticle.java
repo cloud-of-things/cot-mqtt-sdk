@@ -77,7 +77,7 @@ public class ManagedObjectHelperVerticle extends AbstractVerticle {
                 });
                 publishMO(client,
                     msg.getString(MO_PUBLISH_TOPIC_KEY),
-                    SmartREST.getPayloadCheckManagedObject("mascot-testdevices1", msg.getString(DEVICE_ID_KEY)));
+                    SmartREST.getPayloadCheckManagedObject(msg.getString(XID_KEY), msg.getString(DEVICE_ID_KEY)));
             } else {
                 LOGGER.error("Failed to connect to a server", ch.cause());
             }
