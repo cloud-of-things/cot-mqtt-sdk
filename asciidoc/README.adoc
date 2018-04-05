@@ -5,7 +5,7 @@ The nbIoT-MQTT API allows device developers to bootstrap their devices against
 *Cumulocity* and allows subscribing and publishing with the *MQTT-Broker*
 without having to implement it themselves. The API is based on *Vert.x*.
 
-_For questions regarding this API that not listed in the Q&A below, feel free to
+_For questions regarding this API that are not listed in the Q&A below, feel free to
 contact team MasCoT at telekom-mascot@lists.tarent.de_
 
 == Including the API in a project
