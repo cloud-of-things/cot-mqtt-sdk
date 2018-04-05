@@ -76,7 +76,6 @@ repositories {
 }
 
 group = 'de.tarent.telekom.cot'
-version = nbiotMqttVersion // Don't forget to change this in the Readme.md!
 sourceCompatibility = '1.8'
 
 dependencies {
