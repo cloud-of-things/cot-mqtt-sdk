@@ -14,6 +14,9 @@ buildscript {
         classpath "net.linguica.gradle:maven-settings-plugin:0.5"
     }
 }
+plugins{
+    id 'net.researchgate.release' version '2.6.0'
+}
 
 apply plugin: "java"
 apply plugin: "application"
@@ -134,4 +137,9 @@ task packageSources(type: Jar, dependsOn: 'classes') {
 artifacts {
     archives packageJavadoc
     archives packageSources
+}
+release{
+    git{
+        requireBranch = ''
+    }
 }
