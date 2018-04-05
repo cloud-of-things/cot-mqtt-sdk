@@ -25,14 +25,12 @@ public class SystemTest {
     final static String MQTT_BROKER_PORT = "8883";
     final static String BOOTSTRAP_USER = "devicebootstrap";
     final static String BOOTSTRAP_PASSWORD = "Fhdt1bb1f";
-    final static String BOOTSTRAP_KEY = "bootstrapkey1234";
     final static String BOOTSTRAP_DEVICE = "mascot4";
 
     final static String KEY_BOOTSTRAP_USER = "initialUser";
     final static String KEY_BOOTSTRAP_PW = "initialPassword";
     final static String KEY_BROKER_PORT = "brokerPort";
     final static String KEY_BROKER_URI = "brokerURI";
-    final static String KEY_BOOTSTRAP_ENCRYPTION = "message";
 
     final static String MSG_DEVICE = "mascot3";
     final static String MSG_DEVICE_USER = "mascot3";
@@ -66,7 +64,6 @@ public class SystemTest {
         Properties prop = new Properties();
         prop.put(KEY_BROKER_URI, MQTT_BROKER_HOST);
         prop.put(KEY_BROKER_PORT, MQTT_BROKER_PORT);
-        prop.put(KEY_BOOTSTRAP_ENCRYPTION, BOOTSTRAP_KEY);
         prop.put(KEY_MSG_USER, MSG_DEVICE_USER);
         prop.put(KEY_MSG_PW, MSG_DEVICE_PW);
 
@@ -84,7 +81,6 @@ public class SystemTest {
         Properties prop = new Properties();
         prop.put(KEY_BROKER_URI, MQTT_BROKER_HOST);
         prop.put(KEY_BROKER_PORT, MQTT_BROKER_PORT);
-        prop.put(KEY_BOOTSTRAP_ENCRYPTION, BOOTSTRAP_KEY);
         prop.put(KEY_MSG_USER, MSG_DEVICE_USER);
         prop.put(KEY_MSG_PW, MSG_DEVICE_PW);
 
@@ -120,7 +116,6 @@ public class SystemTest {
         Properties prop = new Properties();
         prop.put(KEY_BROKER_URI, MQTT_BROKER_HOST);
         prop.put(KEY_BROKER_PORT, MQTT_BROKER_PORT);
-        prop.put(KEY_BOOTSTRAP_ENCRYPTION, BOOTSTRAP_KEY);
         prop.put(KEY_BOOTSTRAP_USER, BOOTSTRAP_USER);
         prop.put(KEY_BOOTSTRAP_PW, BOOTSTRAP_PASSWORD);
         prop.put(XID,DEVICE_XID);
