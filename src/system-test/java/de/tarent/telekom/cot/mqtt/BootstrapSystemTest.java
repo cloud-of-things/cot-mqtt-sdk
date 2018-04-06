@@ -4,13 +4,16 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Properties;
 
 import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 
+@RunWith(VertxUnitRunner.class)
 public class BootstrapSystemTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BootstrapSystemTest.class);
@@ -19,7 +22,7 @@ public class BootstrapSystemTest {
     private static final String MQTT_BROKER_PORT = "8883";
     private static final String BOOTSTRAP_USER = "devicebootstrap";
     private static final String BOOTSTRAP_PASSWORD = "Fhdt1bb1f";
-    private static final String BOOTSTRAP_DEVICE = "mascot4";
+    private static final String BOOTSTRAP_DEVICE = "mascot5";
 
     private static final String DEVICE_XID = "mascot-testdevices1";
     private static final String XID_KEY = "xId";
