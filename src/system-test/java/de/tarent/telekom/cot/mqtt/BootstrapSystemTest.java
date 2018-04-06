@@ -22,9 +22,9 @@ public class BootstrapSystemTest {
     private static final String MQTT_BROKER_PORT = "8883";
     private static final String BOOTSTRAP_USER = "devicebootstrap";
     private static final String BOOTSTRAP_PASSWORD = "Fhdt1bb1f";
-    private static final String BOOTSTRAP_DEVICE = "mascot5";
+    private static final String BOOTSTRAP_DEVICE = "example";
 
-    private static final String DEVICE_XID = "mascot-testdevices1";
+    private static final String DEVICE_XID = "mascot-testdevices";
     private static final String XID_KEY = "xId";
 
     private MQTTHelper helper;
@@ -39,8 +39,8 @@ public class BootstrapSystemTest {
         final Properties prop = new Properties();
         prop.put(BROKER_URI_KEY, MQTT_BROKER_HOST);
         prop.put(BROKER_PORT_KEY, MQTT_BROKER_PORT);
-        prop.put(USER_KEY, BOOTSTRAP_USER);
-        prop.put(PASSWORD_KEY, BOOTSTRAP_PASSWORD);
+        prop.put(INITIAL_USER_KEY, BOOTSTRAP_USER);
+        prop.put(INITIAL_PASSWORD_KEY, BOOTSTRAP_PASSWORD);
         prop.put(XID_KEY, DEVICE_XID);
 
         final Async async = context.async();
