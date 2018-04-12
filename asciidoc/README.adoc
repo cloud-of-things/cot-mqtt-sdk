@@ -1,0 +1,205 @@
+= nbIoT MQTT API
+:toc:
+
+The nbIoT-MQTT API allows device developers to bootstrap their devices against
+*Cumulocity* and allows subscribing and publishing with the *MQTT-Broker*
+without having to implement it themselves. The API is based on *Vert.x*.
+
+_For questions regarding this API that are not listed in the Q&A below, feel free to
+contact team MasCoT at telekom-mascot@lists.tarent.de_
+
+== Including the API in a project
+
+*Maven*:
+[source,xml]
+----
+<dependency>
+    <groupId>de.tarent.telekom.cot</groupId>
+    <artifactId>nbiot-mqtt</artifactId>
+    <version>version-number</version> <!--1-->
+</dependency>
+----
+
+*Gradle:*
+[source,groovy]
+----
+compile "de.tarent.telekom.cot:nbiot-mqtt:version-number" // <1>
+----
+<1> Please use the latest release version, not the SNAPSHOT.
+
+=== Repository Location
+
+https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/[https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/]
+
+or the released version here:
+
+https://github.com/cloud-of-things/cot-mqtt-sdk[https://github.com/cloud-of-things/cot-mqtt-sdk]
+
+=== JavaDocs
+
+The API docs are located under https://cloud-of-things.github.io/cot-mqtt-sdk/[https://cloud-of-things.github.io/cot-mqtt-sdk/]
+
+== User Manual
+
+After the API is included in your Project, you can use the method `getInstance()` to
+initialise the API. _In case you implemented your own Vert.x instance, you
+should pass your instance in the aforementioned mentioned method (`getInstance(Vertx)`)._
+
+=== Available methods
+
+. *registerDevice* - Handles the bootstrapping process and returns the encoded password
+created for the IoT cloud plus the ID of the generated managed objects in the cloud.
+The method requires the *DeviceId(ICCID)* and a *Property* object of the type
+`java.util.Properties` as parameters. The Property object should hold the following
+values: _brokerURI, brokerPort, initialUser, initialPassword, xID, QoS (optional)_
+for the SmartREST templates found on the CoT tenant. After successfully
+receiving the credentials, the method creates the ManagedObject for the device in
+the CoT and adds the necessary fragments for receiving commands. So that the bootstrap
+process can be properly processed, it's important that the SmartREST templates
+stored in the MOCReationTemplates are added to the CoT tenant on top of your
+own SmartREST templates.
+** *Example:*
++
+[source,java]
+----
+// Get an instance of the MQTTHelper
+final MQTTHelper helper = MQTTHelper.getInstance();
+
+// Get the device id from somewhere
+final String deviceId = "some_device_id";
+
+// Set the necessary properties
+final Properties properties = new Properties();
+properties.put("brokerURI", <MQTT_BROKER_HOST>);
+properties.put("brokerPort", <MQTT_BROKER_PORT>);
+properties.put("initialUser", <BOOTSTRAP_USER>);
+properties.put("initialPassword", <BOOTSTRAP_PASSWORD>);
+properties.put("xId", <DEVICE_XID>);
+
+// Create a callback with what you want to happen when a reponse is delievered from the broker
+Consumer<String> callback = new Consumer<String>() {/*Whatever callback code you want*/};
+
+// Call the method
+helper.registerDevice(deviceId, properties, callback);
+----
+
+. *subscribeToTopic* - Creates a subscription on the desired broker for the device.
+The method requires the *DeviceId(ICCID)* and a *Property* object of the type
+`java.util.Properties` as parameters. The Property object should hold the following
+values: _brokerURI, brokerPort, user, password, QoS (optional)_. In order for this
+method to work, the device must be bootstrapped.
+** *Example:*
++
+[source,java]
+----
+// Get an instance of the MQTTHelper
+final MQTTHelper helper = MQTTHelper.getInstance();
+
+// Get the device id from somewhere
+final String deviceId = "some_device_id";
+
+// Set the necessary properties
+final Properties properties = new Properties();
+properties.put("brokerURI", <MQTT_BROKER_HOST>);
+properties.put("brokerPort", <MQTT_BROKER_PORT>);
+properties.put("user", <USER>);
+properties.put("password", <PASSWORD>);
+
+// Create a callback for information from the nbiot-mqtt library regarding bootstrapping status
+// and other useful feedback that is not returned by the mqtt broker
+Consumer<Object> subscriptionCallback = new Consumer<Object>() {/*Whatever callback code you want*/};
+
+// Create a second callback with what you want to happen with the broker reply
+Consumer<String> callback = new Consumer<String>() {/*Whatever callback code you want*/};
+
+// Call the method
+helper.subscribeToTopic(deviceId, properties, subscriptionCallback, callback);
+----
+
+. *publishMessage* - Publishes a given *message* parameter on the Device's channel.
+The method requires the *DeviceId(ICCID)* and a *Property* object of the type
+`java.util.Properties` as parameters. The Property object should hold the following
+values: _brokerURI, brokerPort, user, password, QoS (optional)_. In order for this
+method to work, the device must be bootstrapped.
+** *Example:*
++
+[source,java]
+----
+// Get an instance of the MQTTHelper
+final MQTTHelper helper = MQTTHelper.getInstance();
+
+// Get the device id from somewhere
+final String deviceId = "some_device_id";
+
+// Get the desired message to send from somewhere
+final String message = "some_random_message";
+
+// Set the necessary properties
+final Properties properties = new Properties();
+properties.put("brokerURI", <MQTT_BROKER_HOST>);
+properties.put("brokerPort", <MQTT_BROKER_PORT>);
+properties.put("initialUser", <USER>);
+properties.put("initialPassword", <PASSWORD>);
+
+// Create a callback so that you can get an answer on whether or not the message was published
+Consumer<Boolean> callback = new Consumer<Boolean>() {/*Whatever callback code you want*/};
+
+// Call the method
+helper.publishMessage(deviceId, message, properties, callback);
+----
+
+. *unsubscribeFromTopic* - Unsubscribes from the desired broker for the device.
+The method requires the *DeviceId(ICCID)* and a *Property* object of the type
+`java.util.Properties` as parameters. The Property object should hold the following
+values: _brokerURI, brokerPort, user, password, QoS (optional)_. In order for this
+method to work, the device must be bootstrapped.
+** *Example:*
++
+[source,java]
+----
+// Get an instance of the MQTTHelper
+final MQTTHelper helper = MQTTHelper.getInstance();
+
+// Get the device id from somewhere
+final String deviceId = "some_device_id";
+
+// Set the necessary properties
+final Properties properties = new Properties();
+properties.put("brokerURI", <MQTT_BROKER_HOST>);
+properties.put("brokerPort", <MQTT_BROKER_PORT>);
+properties.put("user", <USER>);
+properties.put("password", <PASSWORD>);
+
+// Create a callback so that you can get an answer on whether or not the unsubscribe was successful
+Consumer<Boolean> callback = new Consumer<Boolean>() {/*Whatever callback code you want*/};
+
+// Call the method
+helper.unsubscribeFromTopic(deviceId, properties, callback);
+----
+
+=== Useful Classes
+. In the *JsonHelper* class you can find static fields for all of the json/property keys, so
+ this should be used when putting your properties together.
+
+=== Other important information
+
+* *_SSL_* This value can be turned off if the property `"ssl", "false"` ist set in
+the Property object given in the above methods. If you want to use SSL, then you have
+to either set the following Properties: `"keyStorePath", <pathToKeystore>`;
+`"keyStorePassword", <keyStorePassword>` or create a Directory where the jar
+file exists called "certificates" and place a client.jks file that contains both
+certificates and uses the password "kVJEgEVwn3TB9BPA" within.
+
+* *_QoS_* Needs to have one of the following values: *0* (at most once), *1*
+(at least once), *2* (exactly once), or left empty if it doesn't matter.
++
+_The default is always *1* (at least once)_.
+
+Furthermore, all methods require at least one *Callback* so that the method results and
+additional information can be processed.
+
+== Q&A
+[qanda]
+How do I know which property keys exist?::
+  Please see the JsonHelper class for all the available property keys and a short description
+  of what they are used for.

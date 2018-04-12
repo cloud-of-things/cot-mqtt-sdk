@@ -1,28 +1,26 @@
 package de.tarent.telekom.cot.mqtt;
 
-import de.tarent.telekom.cot.mqtt.util.EncryptionHelper;
-import de.tarent.telekom.cot.mqtt.util.Secret;
-import de.tarent.telekom.cot.mqtt.util.SmartREST;
+import de.tarent.telekom.cot.mqtt.util.*;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.ONGOING;
-
+import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 
 public class BootstrapVerticle extends AbstractVerticle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapVerticle.class);
+    private static final String BOOTSTRAPPED_KEY = "bootstrapped";
 
     private MqttClient client;
 
@@ -32,114 +30,120 @@ public class BootstrapVerticle extends AbstractVerticle {
     public void start() throws Exception {
         eb = vertx.eventBus();
 
-        eb.consumer("register", msg -> {
-            registerDevice((JsonObject) msg.body());
-        });
+        eb.consumer("register", msg -> registerDevice((JsonObject) msg.body()));
     }
 
     private void registerDevice(final JsonObject msg) {
-        final Future<JsonObject> config = getConfig();
+        final Future<JsonObject> config = ConfigHelper.getConfigFuture(eb);
         LOGGER.info(msg.encodePrettily());
         final MqttClientOptions options = new MqttClientOptions()
-            .setPassword(msg.getString("initialPassword"))
-            .setUsername(msg.getString("initialUser"))
-            .setAutoKeepAlive(true)
-            .setSsl(msg.getBoolean("ssl"))
-            .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setPassword(msg.getString(INITIAL_PASSWORD_KEY))
+            .setUsername(msg.getString(INITIAL_USER_KEY))
+            .setAutoKeepAlive(true);
+
+        JsonHelper.setSslOptions(options, msg);
+
         client = MqttClient.create(vertx, options);
 
         config.setHandler(s -> {
-
             if (s.succeeded()) {
-                final String bootstrapped = s.result().getString("bootstrapped");
+                final Bootstrapped bootstrapped = getBootstrappedStatus(s);
                 final String secret = s.result().getString("secret");
 
                 if (bootstrapped == null) {
-                    final String newSecret = EncryptionHelper.generatePassword();
-                    setPublishHandler(msg, newSecret);
-                    LOGGER.info("no bootstrapping request sent. connect and publish.");
-                    connectAndPublish(msg, newSecret);
-                } else if (bootstrapped.equals(ONGOING)) {
-                    setPublishHandler(msg, secret);
-                    LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
-                    final int port = Integer.parseInt(msg.getString("brokerPort"));
-                    client.connect(port, msg.getString("brokerURI"), ch -> {
-                        if (ch.succeeded()) {
-                            System.out.println("Connected to a server");
-                            client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value());
-                        }
-                    });
+                    bootstrapDevice(msg);
+                } else if (bootstrapped == ONGOING) {
+                    bootstrapConnectAndSubscribe(msg, secret);
                 }
             }
         });
-
     }
 
-    private Future<JsonObject> getConfig() {
-        final Future<JsonObject> future = Future.future();
-        final JsonObject params = new JsonObject().put("keys",
-            new JsonArray()
-                .add(new JsonObject().put("key", "secret"))
-                .add(new JsonObject().put("key", BOOTSTRAPPED)));
+    private void bootstrapDevice(final JsonObject msg) {
+        final String newSecret = EncryptionHelper.generatePassword();
+        setPublishHandler(msg, newSecret);
+        LOGGER.info("no bootstrapping request sent. connect and publish.");
+        connectAndPublish(msg, newSecret);
+    }
 
-        eb.send("config", params, result -> {
-            if (result.succeeded()) {
-                future.complete((JsonObject) result.result().body());
-            } else {
-                future.fail(result.cause());
+    private void bootstrapConnectAndSubscribe(final JsonObject msg, final String secret) {
+        setPublishHandler(msg, secret);
+        LOGGER.info("bootstrapping request already sent. just connect and resubscribe.");
+        final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
+        client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
+            if (ch.succeeded()) {
+                LOGGER.info("Connected to a server");
+                client.subscribe(msg.getString(SUBSCRIBE_TOPIC_KEY),
+                    MqttQoS.valueOf(msg.getInteger(QOS_KEY)).value());
             }
         });
+    }
 
-        return future;
+    private Bootstrapped getBootstrappedStatus(final AsyncResult<JsonObject> s) {
+        try {
+            return Bootstrapped.valueOf(s.result().getString(BOOTSTRAPPED_KEY));
+        } catch (final NullPointerException e) {
+            return null;
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(
+                "Illegal bootstrapped status value. Setting bootstrapped to null to start the bootstrapping process...");
+            return null;
+        }
     }
 
     private void setPublishHandler(final JsonObject msg, final String secret) {
         client.publishHandler(s -> {
-            if (s.topicName().equals(msg.getString("subscribeTopic"))) {
+            if (s.topicName().equals(msg.getString(SUBSCRIBE_TOPIC_KEY))) {
                 LOGGER.info(String.format("Receive message with content: \"%s\" from topic \"%s\"",
                     s.payload().toString("utf-8"),
                     s.topicName()));
                 final EncryptionHelper ech = new EncryptionHelper();
                 final byte[] pass = ech.decrypt(new Secret(secret), s.payload().getBytes());
-                client.unsubscribe(msg.getString("subscribeTopic"));
+                client.unsubscribe(msg.getString(SUBSCRIBE_TOPIC_KEY));
                 client.disconnect();
 
                 final JsonObject replyObject = new JsonObject();
                 replyObject.put("status", "registered");
                 replyObject.put("password", new String(pass));
 
-                eb.publish("bootstrapComplete", replyObject);
-
                 //write to config that bootstrap process is done
                 final JsonObject bootStrapDoneMessage = new JsonObject();
-                bootStrapDoneMessage.put("bootstrapped", BOOTSTRAPPED);
-                bootStrapDoneMessage.put("cloudPassword", new String(pass));
+                bootStrapDoneMessage.put(BOOTSTRAPPED_KEY, BOOTSTRAPPED);
+                bootStrapDoneMessage.put("password", new String(pass));
                 eb.publish("setConfig", bootStrapDoneMessage);
 
-                createManagedObject();
+                eb.consumer("managedObjectCreated", result -> {
+                    JsonObject moId= (JsonObject) result.body();
+                    replyObject.put("managedObjectId",moId.getValue("managedObjectId"));
+                    eb.publish("bootstrapComplete", replyObject);
+                });
+
+                JsonObject moMsg = msg.copy();
+                moMsg.put("cloudPassword", new String(pass));
+                eb.publish("createManagedObject", moMsg);
             }
         });
     }
 
     private void connectAndPublish(final JsonObject msg, final String secret) {
         //connect and publish on /iccid
-        final int port = Integer.parseInt(msg.getString("brokerPort"));
-        client.connect(port, msg.getString("brokerURI"), ch -> {
+        final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
+        client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
             if (ch.succeeded()) {
-                System.out.println("Connected to a server");
-                client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value());
+                LOGGER.info("Connected to a server");
+                client.subscribe(msg.getString(SUBSCRIBE_TOPIC_KEY), MqttQoS.valueOf(msg.getInteger(QOS_KEY)).value());
 
                 final JsonObject configParams = new JsonObject();
 
-                client.publish(msg.getValue("publishTopic").toString(),
+                client.publish(msg.getValue(PUBLISH_TOPIC_KEY).toString(),
                     Buffer.buffer(secret),
-                    MqttQoS.valueOf(msg.getInteger("QoS")),
+                    MqttQoS.valueOf(msg.getInteger(QOS_KEY)),
                     false,
                     false,
                     s -> {
                         LOGGER.info("Publish sent to a server");
                         //write to config that bootstrap process has started
-                        configParams.put("bootstrapped", ONGOING);
+                        configParams.put(BOOTSTRAPPED_KEY, ONGOING);
                         configParams.put("secret", secret);
                         eb.publish("setConfig", configParams);
                     });
@@ -148,83 +152,4 @@ public class BootstrapVerticle extends AbstractVerticle {
             }
         });
     }
-
-    private void createManagedObject(){
-        final Future<JsonObject> config = getConfig();
-
-        config.setHandler(s -> {
-
-                if (s.succeeded()) {
-                    JsonObject configObject = s.result();
-
-                    final String deviceId = s.result().getString("deviceId");
-                    final String password = s.result().getString("cloudPassword");
-
-                    final MqttClientOptions options = new MqttClientOptions()
-                        .setPassword(password)
-                        .setUsername(deviceId)
-                        .setAutoKeepAlive(true)
-                        .setSsl(true)
-                        .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
-                    final int port = Integer.parseInt(configObject.getString("brokerPort"));
-                    final MqttClient MOclient = MqttClient.create(vertx, options);
-
-                    MOclient.publishHandler(h -> {
-                        LOGGER.info("Message with topic " + h.topicName() + " with QOS " + h.qosLevel().name() + " received");
-                        if (h.topicName().equals(s.result().getString("subscribeTopic"))) {
-
-                            String[] parsedPayload= SmartREST.parseResponsePayload(h.payload());
-                            //object doesnt exist
-                            if(parsedPayload[0].equals("50")&&parsedPayload[2].equals("404")){
-                                String message = SmartREST.getPayloadSelfCreationRequest(configObject.getString("xId"),configObject.getString("deviceId"),"deviceName");
-                                MOPublish(MOclient, configObject.getString("publishTopic"), message);
-                            }
-                            //object already exists
-                            else if(parsedPayload[0].equals("601")){
-                                //601,1,mascot3,2817383;
-                                //what to do when object for iccid already exists?
-                                
-                            }
-                            //object created we
-                            if(parsedPayload[0].equals("603")){
-                                final JsonObject managedObject = new JsonObject();
-                                managedObject.put("managedObjectId", parsedPayload[2]);
-                                eb.publish("setConfig", managedObject);
-
-                                String registerICCIDString = SmartREST.getPayloadRegisterICCIDasExternalId(configObject.getString("xId"),parsedPayload[2],configObject.getString("deviceId"));
-                                MOPublish(MOclient, configObject.getString("publishTopic"), registerICCIDString);
-                                String updateOperationsString = SmartREST.getPayloadUpdateOperations(configObject.getString("xId"),parsedPayload[2]);
-                                MOPublish(MOclient, configObject.getString("publishTopic"), updateOperationsString);
-                                MOclient.unsubscribe(configObject.getString("subscribeTopic"));
-                                MOclient.disconnect();
-                            }
-                        }
-                    });
-
-                    MOclient.connect(port, s.result().getString("brokerURI"), ch -> {
-                        if (ch.succeeded()) {
-                            LOGGER.info("Connected to a server");
-                            MOclient.subscribe(configObject.getString("subscribeTopic"), MqttQoS.AT_MOST_ONCE.value(),
-                                d -> {});
-                            MOPublish(MOclient, configObject.getString("publishTopic"),SmartREST.getPayloadCheckManagedObject("mascot-testdevices1", s.result().getString("deviceId")));
-                        } else {
-                            LOGGER.error("Failed to connect to a server", ch.cause());
-                        }
-                    });
-            }
-        });
-
-    }
-
-    private void MOPublish(MqttClient client, String topic, String message){
-        client.publish(
-            topic,
-            Buffer.buffer(message),
-            MqttQoS.AT_MOST_ONCE,
-            false,
-            false,
-            k -> {}
-        );
-    }
-
 }

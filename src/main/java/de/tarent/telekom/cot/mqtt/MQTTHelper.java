@@ -1,7 +1,6 @@
 package de.tarent.telekom.cot.mqtt;
 
 import de.tarent.telekom.cot.mqtt.util.JsonHelper;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
@@ -15,6 +14,7 @@ import java.util.Properties;
 import java.util.function.Consumer;
 
 import static de.tarent.telekom.cot.mqtt.util.Bootstrapped.BOOTSTRAPPED;
+import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 
 /**
  * Helper class that starts our {@link io.vertx.core.Verticle}s and offers various methods for registering devices
@@ -30,12 +30,14 @@ public class MQTTHelper extends AbstractVerticle {
     private static final String REGISTER_PUBLISH_PREFIX = "ss/";
     private static final String MESSAGE_SUBSCRIBE_PREFIX = "mr/";
     private static final String MESSAGE_PUBLISH_PREFIX = "ms/";
-    private static final String SMARTREST_XID = "mascot-testdevices1";
+    private static final String SET_CONFIG_KEY = "setConfig";
+    private static final String BOOTSTRAPPED_KEY = "bootstrapped";
     private static MQTTHelper helper;
 
     private final Configuration config = new Configuration();
     private final BootstrapVerticle bootstrapVerticle = new BootstrapVerticle();
     private final MessageVerticle messageVerticle = new MessageVerticle();
+    private final ManagedObjectHelperVerticle managedObjectHelperVerticle = new ManagedObjectHelperVerticle();
 
     private final List<String> deploymentIds = new ArrayList<>();
 
@@ -57,6 +59,11 @@ public class MQTTHelper extends AbstractVerticle {
             }
         });
         vertx.deployVerticle(messageVerticle, dh -> {
+            if (dh.succeeded()) {
+                deploymentIds.add(dh.result());
+            }
+        });
+        vertx.deployVerticle(managedObjectHelperVerticle, dh -> {
             if (dh.succeeded()) {
                 deploymentIds.add(dh.result());
             }
@@ -105,9 +112,7 @@ public class MQTTHelper extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
-        deploymentIds.forEach(id -> {
-            vertx.undeploy(id);
-        });
+        deploymentIds.forEach(vertx::undeploy);
         helper = null;
     }
 
@@ -122,23 +127,18 @@ public class MQTTHelper extends AbstractVerticle {
     public void registerDevice(final String deviceId, final Properties prop, final Consumer<String> callback) {
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
-        msg.put("publishTopic", REGISTER_PUBLISH_PREFIX + deviceId);
-        msg.put("subscribeTopic", REGISTER_SUBSCRIBE_PREFIX + deviceId);
-        msg.put("deviceId", deviceId);
-
-        final int qualityOfService = getQoSValue(msg);
-        msg.put("QoS", qualityOfService);
-
-        final boolean ssl = getSslValue(msg);
-        msg.put("ssl", ssl);
-
-        msg.put("xId", SMARTREST_XID);
-        eventBus.publish("setConfig", msg);
+        msg.put(PUBLISH_TOPIC_KEY, REGISTER_PUBLISH_PREFIX + deviceId);
+        msg.put(SUBSCRIBE_TOPIC_KEY, REGISTER_SUBSCRIBE_PREFIX + deviceId);
+        msg.put(MO_PUBLISH_TOPIC_KEY, MESSAGE_PUBLISH_PREFIX + deviceId);
+        msg.put(MO_SUBSCRIBE_TOPIC_KEY, MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+        msg.put(DEVICE_ID_KEY, deviceId);
+        msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
+        msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
+        eventBus.publish(SET_CONFIG_KEY, msg);
 
         eventBus.consumer("bootstrapComplete", result -> {
             final JsonObject registeredResult = (JsonObject) result.body();
-            eventBus.publish("setConfig", registeredResult);
-            //ToDo:prepare ReturnMSG
+            eventBus.publish(SET_CONFIG_KEY, registeredResult);
             callback.accept(registeredResult.getString("password"));
         });
 
@@ -152,27 +152,22 @@ public class MQTTHelper extends AbstractVerticle {
      * @param deviceId the given device with which to publish the message
      * @param message  the given message which should be published
      * @param prop     the {@link Properties} contains connection parameters (Eg. URI, port, credentials, QoS...)
-     * @param callback the callback function to receive the created credentials
+     * @param callback the callback function to receive the message publish status
      */
     public void publishMessage(final String deviceId, final String message, final Properties prop,
         final Consumer<Boolean> callback) {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
-        eventBus.publish("setConfig", msg);
-        msg.put("publishTopic", MESSAGE_PUBLISH_PREFIX + deviceId);
-        msg.put("message", message);
-
-        final int qualityOfService = getQoSValue(msg);
-        msg.put("QoS", qualityOfService);
-
-        final boolean ssl = getSslValue(msg);
-        msg.put("ssl", ssl);
+        eventBus.publish(SET_CONFIG_KEY, msg);
+        msg.put(PUBLISH_TOPIC_KEY, MESSAGE_PUBLISH_PREFIX + deviceId);
+        msg.put(MESSAGE_KEY, message);
+        msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
+        msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
 
         eventBus.send("publish", msg, result -> {
             if (result.succeeded()) {
                 final JsonObject registeredResult = (JsonObject) result.result().body();
-                //ToDo:prepare ReturnMSG
                 callback.accept(registeredResult.getBoolean("published"));
             } else {
                 logger.error("Sending message failed - ", result.cause());
@@ -197,22 +192,18 @@ public class MQTTHelper extends AbstractVerticle {
             callback.accept(registeredResult.getString("received"));
         });
 
-        final JsonObject question = new JsonObject().put("key", "bootstrapped");
+        final JsonObject question = new JsonObject().put("key", BOOTSTRAPPED_KEY);
 
         eventBus.send("config", question, r -> {
             if (r.succeeded()) {
                 final JsonObject bootstrappedProperty = (JsonObject) r.result().body();
-                if (bootstrappedProperty != null && bootstrappedProperty.getString("bootstrapped") != null
-                    && BOOTSTRAPPED.name().equals(bootstrappedProperty.getString("bootstrapped"))) {
+                if (bootstrappedProperty != null && bootstrappedProperty.getString(BOOTSTRAPPED_KEY) != null
+                    && BOOTSTRAPPED.name().equals(bootstrappedProperty.getString(BOOTSTRAPPED_KEY))) {
 
                     final JsonObject msg = JsonHelper.from(prop);
-                    msg.put("subscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-
-                    final int qualityOfService = getQoSValue(msg);
-                    msg.put("QoS", qualityOfService);
-
-                    final boolean ssl = getSslValue(msg);
-                    msg.put("ssl", ssl);
+                    msg.put(SUBSCRIBE_TOPIC_KEY, MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+                    msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
+                    msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
 
                     eventBus.send("subscribe", msg, messageHandler -> {
                         if (messageHandler.succeeded()) {
@@ -244,13 +235,9 @@ public class MQTTHelper extends AbstractVerticle {
 
         final EventBus eventBus = vertx.eventBus();
         final JsonObject msg = JsonHelper.from(prop);
-        msg.put("unsubscribeTopic", MESSAGE_SUBSCRIBE_PREFIX + deviceId);
-
-        final int qualityOfService = getQoSValue(msg);
-        msg.put("QoS", qualityOfService);
-
-        final boolean ssl = getSslValue(msg);
-        msg.put("ssl", ssl);
+        msg.put(UNSUBSCRIBE_TOPIC_KEY, MESSAGE_SUBSCRIBE_PREFIX + deviceId);
+        msg.put(QOS_KEY, JsonHelper.getQoSValue(msg));
+        msg.put(SSL_KEY, JsonHelper.getSslValue(msg));
 
         eventBus.send("unsubscribe", msg, messageHandler -> {
             if (messageHandler.succeeded()) {
@@ -261,34 +248,5 @@ public class MQTTHelper extends AbstractVerticle {
                 unsubscriptionCallback.accept(false);
             }
         });
-    }
-
-    private int getQoSValue(final JsonObject msg) {
-        int qualityOfService = 0;
-
-        try {
-            qualityOfService = Integer.parseInt(msg.getString("QoS"));
-        } catch (final NumberFormatException e) {
-            logger.error("Error while parsing QoS value, using default value of 0.");
-        }
-
-        for (MqttQoS mqttQoS : MqttQoS.values()) {
-            if (qualityOfService == mqttQoS.value()) {
-                return qualityOfService;
-            }
-        }
-
-        return MqttQoS.AT_MOST_ONCE.value();
-    }
-
-    private boolean getSslValue(JsonObject msg) {
-        final String ssl = msg.getString("ssl");
-
-        // We don't need the user to set this, it should always be true. We only set it to false for tests.
-        if (ssl == null) {
-            return true;
-        } else {
-            return Boolean.parseBoolean(ssl);
-        }
     }
 }

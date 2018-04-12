@@ -16,10 +16,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.util.Properties;
@@ -48,10 +45,10 @@ public class BootstrapIT {
     @Before
     public void before(TestContext context) throws InterruptedException{
         helper = MQTTHelper.getInstance();
-        Thread.sleep(500);
+        Thread.sleep(500); //NOSONAR - This is in a test, it's OK.
         EventBus eb = helper.getVertx().eventBus();
         eb.publish("resetConfig", new JsonObject());
-        Thread.sleep(500);
+        Thread.sleep(500); //NOSONAR - This is in a test, it's OK.
     }
 
     @After
@@ -64,7 +61,7 @@ public class BootstrapIT {
                 logger.error("error during undeployment of helper", h.cause());
             }
         });
-        Thread.sleep(1000);
+        Thread.sleep(1000); //NOSONAR - This is in a test, it's OK.
     }
 
     @Test
@@ -100,7 +97,7 @@ public class BootstrapIT {
             context.assertNotNull(back);
             async.complete();
         });
-        async.awaitSuccess(3000);
+        async.awaitSuccess(5000);
     }
 
     @Test
@@ -136,7 +133,7 @@ public class BootstrapIT {
             }
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(5000);
     }
 
 }

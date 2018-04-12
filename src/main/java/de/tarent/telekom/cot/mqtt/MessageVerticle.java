@@ -1,5 +1,6 @@
 package de.tarent.telekom.cot.mqtt;
 
+import de.tarent.telekom.cot.mqtt.util.JsonHelper;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.buffer.Buffer;
@@ -8,9 +9,10 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.net.JksOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
+
+import static de.tarent.telekom.cot.mqtt.util.JsonHelper.*;
 
 /**
  * {@link io.vertx.core.Verticle} for publishing messages.
@@ -18,6 +20,8 @@ import io.vertx.mqtt.MqttClientOptions;
 public class MessageVerticle extends AbstractVerticle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageVerticle.class);
+    private static final String CONNECTED_TO_A_SERVER_MESSAGE = "Connected to a server";
+    private static final String FAILED_TO_CONNECT_TO_A_SERVER_MESSAGE = "Failed to connect to a server";
 
     private MqttClient client;
 
@@ -25,17 +29,11 @@ public class MessageVerticle extends AbstractVerticle {
     public void start() {
         final EventBus eventBus = vertx.eventBus();
 
-        eventBus.consumer("publish", msg -> {
-            publishMessage((JsonObject) msg.body(), msg);
-        });
+        eventBus.consumer("publish", msg -> publishMessage((JsonObject) msg.body(), msg));
 
-        eventBus.consumer("subscribe", msg -> {
-            subscribeToTopic((JsonObject) msg.body(), msg);
-        });
+        eventBus.consumer("subscribe", msg -> subscribeToTopic((JsonObject) msg.body(), msg));
 
-        eventBus.consumer("unsubscribe", msg -> {
-            unsubscribeFromTopic((JsonObject) msg.body(), msg);
-        });
+        eventBus.consumer("unsubscribe", msg -> unsubscribeFromTopic((JsonObject) msg.body(), msg));
     }
 
 
@@ -47,55 +45,55 @@ public class MessageVerticle extends AbstractVerticle {
     private void publishMessage(final JsonObject msg, final Message handle) {
 
         final MqttClientOptions options = new MqttClientOptions()
-                .setPassword(msg.getString("password"))
-                .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true)
-                .setSsl(msg.getBoolean("ssl"))
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setPassword(msg.getString(PASSWORD_KEY))
+            .setUsername(msg.getString(USER_KEY))
+            .setAutoKeepAlive(true);
+
+        JsonHelper.setSslOptions(options, msg);
 
         //connect and publish on /iccid
-        final int port = Integer.parseInt(msg.getString("brokerPort"));
+        final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
 
         if (client == null) {
             client = MqttClient.create(vertx, options);
         }
-        if (client.isConnected()){
+        if (client.isConnected()) {
             publish(msg, handle);
-        }else {
-            client.connect(port, msg.getString("brokerURI"), ch -> {
+        } else {
+            client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info("Connected to a server");
+                    LOGGER.info(CONNECTED_TO_A_SERVER_MESSAGE);
                     publish(msg, handle);
                 } else {
-                    LOGGER.error("Failed to connect to a server", ch.cause());
+                    LOGGER.error(FAILED_TO_CONNECT_TO_A_SERVER_MESSAGE, ch.cause());
                 }
             });
         }
     }
 
-    private void publish(final JsonObject msg, final Message handle){
-        client.publish(msg.getValue("publishTopic").toString(),
-                Buffer.buffer(msg.getValue("message").toString()),
-                MqttQoS.valueOf(msg.getInteger("QoS")),
-                false,
-                false,
-                s -> {
-                    LOGGER.info("Publish sent to a server");
-                    JsonObject jso = new JsonObject().put("published", true);
-                    handle.reply(jso);
-                });
+    private void publish(final JsonObject msg, final Message handle) {
+        client.publish(msg.getValue(PUBLISH_TOPIC_KEY).toString(),
+            Buffer.buffer(msg.getValue(MESSAGE_KEY).toString()),
+            MqttQoS.valueOf(msg.getInteger(QOS_KEY)),
+            false,
+            false,
+            s -> {
+                LOGGER.info("Publish sent to a server");
+                JsonObject jso = new JsonObject().put("published", true);
+                handle.reply(jso);
+            });
     }
 
     private void subscribeToTopic(final JsonObject msg, final Message handle) {
         final MqttClientOptions options = new MqttClientOptions()
-                .setPassword(msg.getString("password"))
-                .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true)
-                .setSsl(msg.getBoolean("ssl"))
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setPassword(msg.getString(PASSWORD_KEY))
+            .setUsername(msg.getString(USER_KEY))
+            .setAutoKeepAlive(true);
+
+        JsonHelper.setSslOptions(options, msg);
 
         //connect and subscribe on /iccid
-        final int port = Integer.parseInt(msg.getString("brokerPort"));
+        final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
 
         if (client == null) {
             client = MqttClient.create(vertx, options);
@@ -104,7 +102,7 @@ public class MessageVerticle extends AbstractVerticle {
         //Implementation of return
         client.publishHandler(h -> {
             LOGGER.info("Message with topic " + h.topicName() + " with QOS " + h.qosLevel().name() + " received");
-            if (h.topicName().equals(msg.getString("subscribeTopic"))) {
+            if (h.topicName().equals(msg.getString(SUBSCRIBE_TOPIC_KEY))) {
                 String message = h.payload().toString();
                 JsonObject toCallBack = new JsonObject().put("received", message);
                 eventBus.publish("received", toCallBack);
@@ -113,12 +111,12 @@ public class MessageVerticle extends AbstractVerticle {
         if (client.isConnected()) {
             subscribe(msg, handle);
         } else {
-            client.connect(port, msg.getString("brokerURI"), ch -> {
+            client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info("Connected to a server");
+                    LOGGER.info(CONNECTED_TO_A_SERVER_MESSAGE);
                     subscribe(msg, handle);
                 } else {
-                    LOGGER.error("Failed to connect to a server", ch.cause());
+                    LOGGER.error(FAILED_TO_CONNECT_TO_A_SERVER_MESSAGE, ch.cause());
                 }
             });
         }
@@ -126,14 +124,14 @@ public class MessageVerticle extends AbstractVerticle {
 
     private void unsubscribeFromTopic(final JsonObject msg, final Message handle) {
         final MqttClientOptions options = new MqttClientOptions()
-                .setPassword(msg.getString("password"))
-                .setUsername(msg.getString("user"))
-                .setAutoKeepAlive(true)
-                .setSsl(msg.getBoolean("ssl"))
-                .setTrustOptions(new JksOptions().setPath("certificates/client.jks").setPassword("kVJEgEVwn3TB9BPA"));
+            .setPassword(msg.getString(PASSWORD_KEY))
+            .setUsername(msg.getString(USER_KEY))
+            .setAutoKeepAlive(true);
+
+        JsonHelper.setSslOptions(options, msg);
 
         //connect and subscribe on /iccid
-        final int port = Integer.parseInt(msg.getString("brokerPort"));
+        final int port = Integer.parseInt(msg.getString(BROKER_PORT_KEY));
 
         if (client == null) {
             client = MqttClient.create(vertx, options);
@@ -142,28 +140,27 @@ public class MessageVerticle extends AbstractVerticle {
         if (client.isConnected()) {
             unsubscribe(msg, handle);
         } else {
-            client.connect(port, msg.getString("brokerURI"), ch -> {
+            client.connect(port, msg.getString(BROKER_URI_KEY), ch -> {
                 if (ch.succeeded()) {
-                    LOGGER.info("Connected to a server");
+                    LOGGER.info(CONNECTED_TO_A_SERVER_MESSAGE);
                     unsubscribe(msg, handle);
                 } else {
-                    LOGGER.error("Failed to connect to a server", ch.cause());
+                    LOGGER.error(FAILED_TO_CONNECT_TO_A_SERVER_MESSAGE, ch.cause());
                 }
             });
         }
     }
 
     private void subscribe(final JsonObject msg, final Message handle) {
-        client.subscribe(msg.getString("subscribeTopic"), MqttQoS.valueOf(msg.getInteger("QoS")).value(),
-                s -> {
-                    LOGGER.info("Subscribe call sent to a server");
-                    JsonObject jso = new JsonObject().put("subscribed", true);
-                    handle.reply(jso);
-                });
+        client.subscribe(msg.getString(SUBSCRIBE_TOPIC_KEY), MqttQoS.valueOf(msg.getInteger(QOS_KEY)).value(), s -> {
+            LOGGER.info("Subscribe call sent to a server");
+            JsonObject jso = new JsonObject().put("subscribed", true);
+            handle.reply(jso);
+        });
     }
 
     private void unsubscribe(final JsonObject msg, final Message handle) {
-        client.unsubscribe(msg.getString("unsubscribeTopic"), s -> {
+        client.unsubscribe(msg.getString(UNSUBSCRIBE_TOPIC_KEY), s -> {
             LOGGER.info("Unsubscribe call sent to a server");
             final JsonObject jso = new JsonObject().put("unsubscribed", true);
             handle.reply(jso);

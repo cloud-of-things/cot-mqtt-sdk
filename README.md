@@ -1,44 +1,54 @@
 ## API to service access to the MQTT broker for bootstrapping and CoT interaction
 
-Das NBIOT-MQTT SDK ermöglicht es Device-Entwicklern den Bootstrap-Vorgang gegen die **Cumulocity** 
-und anschliessendes Subscriben und Publishen am **MQTT Broker** durchzuführen ohne diese selbst zu implementieren. 
-Das SDK baut auf **Vert.x** auf.
+The nbIoT-MQTT API allows device developers to bootstrap their devices against
+**Cumulocity** and allows subscribing and publishing with the **MQTT-Broker**
+without having to implement it themselves. The API is based on **Vert.x**.
 
-### Das SDK in Projekten Einbinden
+### Including the API in a project
 **Maven**:
 ```xml
 <dependency>
     <groupId>de.tarent.telekom.cot</groupId>
     <artifactId>nbiot-mqtt</artifactId>
-    <version>0.5.2-SNAPSHOT</version>    
+    <version>version-number</version>    
 </dependency>
 ```
  
 **Gradle:**
 ```groovy
-compile "de.tarent.telekom.cot:nbiot-mqtt:0.5.2-SNAPSHOT"
+compile "de.tarent.telekom.cot:nbiot-mqtt:version-number"
 ```
 
-#### Das Repository befindet sich hier:
+#### You can find the repository here:
 https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/
 
+or the released version here:
 
-### Anleitung
-Nachdem man das SDK in seinem Projekt eingebunden hat, kann man über die Methode `getInstance()` das SDK initialisieren.
-_Im Falle, dass man selbst eine Vert.x-Anwendung entwickelt sollte man dieser die vertx Instanz mitgeben._
+https://github.com/cloud-of-things/cot-mqtt-sdk
 
-#### Verfügbare Methoden:
-**registerDevice** - Handelt den Bootstrapping Vorgang ab und liefert das Passwort zurück. Bekommt die **DeviceID(ICCID)** übergeben 
-und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für _initialPassword, initialUser, brokerPort, brokerURI, QoS (optional)_.
+#### JavaDocs
 
-**subscribeToTopic** - Erstellt eine Subscription am gewünschten Broker für das Device. Bekommt die **DeviceID(ICCID)** übergeben 
-und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für _password, user, brokerPort, brokerURI, QoS (optional)_.
+The API docs are located under https://cloud-of-things.github.io/cot-mqtt-sdk/
 
-**publishMessage** - Veröffentlicht auf dem für das Device entsprechenden Kanal eine **Message**, die als Parameter übergeben wird. 
-Bekommt weiterhin die **DeviceID(ICCID)** und ein **Property-Objekt** vom Typ java.util.Properties mit entsprechenden Values für _password, user, brokerPort, 
-brokerURI, QoS (optional)_ übergeben.
 
-#### Sonstiges:
-_**QoS**_ muss einer von folgende Werte haben: **0** (at most once), **1** (at least once), **2** (exactly once), oder leer gelassen werden, wenn es egal ist. _Default ist immer **0** (at most once)_. 
+### User Manual
+After the API is included in your Project, you can use the method `getInstance()` to
+initialise the API. _In case you implemented your own Vert.x instance, you
+should pass your instance in the aforementioned mentioned method (`getInstance(Vertx)`)._
 
-Weiterhin muss allen Methoden ein **Callback** übergeben werden, über das die Ergebnisse der Methoden zurückgegeben werden.
+#### Available methods:
+* registerDevice(String, Properties, Consumer<String>)
+* subscribeToTopic(String, Properties, Consumer<Object>, Consumer<String>)
+* publishTopic(String, String, Properties, Consumer<Boolean>)
+* unsubscribeFromTopic(String, Properties, Consumer<Boolean>)
+
+For more information regarding these methods (explanation, examples, etc.) please
+see the asciidoc located at "asciidoc/README.adoc".
+
+### Release notes
+#### Version 0.5.2-SNAPSHOT
+- *bootstrapping* - nbIoT-devices can now be bootstrapped and receives the
+credentials from CoT, persists device data in the nbIoT environment and creates
+managed Objects over SmartREST for shell access.
+- *messaging* - API helps the devices with subscribing on topics to receive messages
+from the MQTT-Broker and helps with sending SmartREST messages to the CoT.

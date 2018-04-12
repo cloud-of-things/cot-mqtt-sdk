@@ -1,10 +1,29 @@
-plugins {
-    id 'java'
-    id 'application'
-    id "net.linguica.maven-settings" version "0.5"
-    id 'maven-publish'
-//    id 'net.researchgate.release' version '2.6.0'
+buildscript {
+    repositories {
+        maven { url "${wBenchNexusUrl}/content/repositories/gradle.org" }
+        mavenCentral()
+        mavenLocal()
+        jcenter()
+        maven { url "${wBenchNexusUrl}/content/repositories/public" }
+        maven { url "${wBenchNexusUrl}/content/repositories/2ndparty" }
+        maven { url "${wBenchNexusUrl}/content/repositories/snapshots" }
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
+        classpath "net.linguica.gradle:maven-settings-plugin:0.5"
+    }
 }
+plugins{
+    id 'net.researchgate.release' version '2.6.0'
+}
+
+apply plugin: "java"
+apply plugin: "application"
+apply plugin: "net.linguica.maven-settings"
+apply plugin: "maven-publish"
+apply plugin: "org.sonarqube"
+apply plugin: "jacoco"
 
 ext {
     vertxVersion = '3.5.1'
@@ -45,6 +64,7 @@ repositories {
     maven { url "${wBenchNexusUrl}/content/repositories/public" }
     maven { url "${wBenchNexusUrl}/content/repositories/2ndparty" }
     maven { url "${wBenchNexusUrl}/content/repositories/snapshots" }
+    maven { url "${wBenchNexusUrl}/content/repositories/gradle.org" }
     maven {
         name "nbiot-releases"
         url "${wBenchNexusUrl}/content/repositories/nbiot-releases"
@@ -56,7 +76,6 @@ repositories {
 }
 
 group = 'de.tarent.telekom.cot'
-version = '0.5.2-SNAPSHOT' // Don't forget to change this in the Readme.md!
 sourceCompatibility = '1.8'
 
 dependencies {
@@ -117,4 +136,9 @@ task packageSources(type: Jar, dependsOn: 'classes') {
 artifacts {
     archives packageJavadoc
     archives packageSources
+}
+release{
+    git{
+        requireBranch = ''
+    }
 }

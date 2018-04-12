@@ -3,7 +3,7 @@ package de.tarent.telekom.cot.mqtt;
 
 import io.vertx.config.ConfigRetriever;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.file.FileSystem;
@@ -11,71 +11,98 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-
+/**
+ * Class for managing our configuration file so that we can save information that needs to be persisted.
+ */
 public class Configuration extends AbstractVerticle {
 
-    Logger logger = LoggerFactory.getLogger(Configuration.class);
+    private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
+    private static final String CONFIG_PATH_KEY = "configPath";
 
-    JsonObject conf = new JsonObject();
-    final JsonObject sysConf = new JsonObject();
+    private final JsonObject conf = new JsonObject();
+    private final JsonObject sysConf = new JsonObject();
 
 
     @Override
     public void start() {
-        EventBus eb = vertx.eventBus();
+        final EventBus eb = vertx.eventBus();
 
         eb.consumer("config", msg -> {
-            JsonObject o = (JsonObject) msg.body();
+            final JsonObject o = (JsonObject) msg.body();
             msg.reply(getConfig(o));
         });
+
         eb.consumer("setConfig", h -> {
             logger.info("in setConfig");
-            JsonObject msg = (JsonObject) h.body();
+            final JsonObject msg = (JsonObject) h.body();
             setConfig(msg);
             h.reply(msg.put("saved", true));
         });
+
         eb.consumer("resetConfig", rh -> {
             resetConfig();
             rh.reply(new JsonObject().put("status", "Config cleared"));
         });
-        ConfigRetriever retriever = ConfigRetriever.create(vertx);
+
+        final ConfigRetriever retriever = ConfigRetriever.create(vertx);
         retriever.getConfig(ch -> {
             if (ch.succeeded()) {
-                sysConf.mergeIn(ch.result());
-                FileSystem fs = vertx.fileSystem();
-                String dir = sysConf.getString("user.home") + "/.nbiot";
-                String path = dir + "/config.json";
-                sysConf.put("configPath", path);
-                fs.exists(path, fh -> {
-                    if (fh.succeeded() && fh.result()) {
-                        fs.readFile(path, rf -> {
-                            if (rf.succeeded()) {
-                                JsonObject o = new JsonObject(rf.result());
-                                conf.mergeIn(o);
-                            }
-                        });
-                    } else {
-                        logger.info("dir has to be created");
-                        fs.mkdir(dir, mkdh -> {
-                            if (mkdh.succeeded()) {
-                                logger.info("config_dir created");
-                            } else {
-                                logger.error("creation of config dir failed", mkdh.cause());
-                            }
-                        });
-                    }
-                });
-
-
-
-                logger.info("Configuration deployed");
-
+                deployConfig(ch);
             }
         });
     }
 
-    public JsonObject getConfig(JsonObject in) {
-        JsonObject out = new JsonObject();
+    private void deployConfig(final AsyncResult<JsonObject> ch) {
+        sysConf.mergeIn(ch.result());
+        final FileSystem fs = vertx.fileSystem();
+        final String dir = sysConf.getString("user.home") + "/.nbiot";
+        final String path = dir + "/config.json";
+        sysConf.put(CONFIG_PATH_KEY, path);
+        fs.exists(path, fh -> {
+            if (fh.succeeded() && fh.result()) {
+                readFile(fs, path);
+            } else {
+                logger.info("Directory has to be created.");
+                createDirectory(fs, dir);
+            }
+        });
+
+        logger.info("Configuration deployed");
+    }
+
+    private void readFile(final FileSystem fs, final String path) {
+        fs.readFile(path, rf -> {
+            if (rf.succeeded()) {
+                final JsonObject o = new JsonObject(rf.result());
+                conf.mergeIn(o);
+            }
+        });
+    }
+
+    private void createDirectory(final FileSystem fs, final String dir) {
+        fs.mkdir(dir, mkdh -> {
+            if (mkdh.succeeded()) {
+                logger.info("config_dir directory was created.");
+            } else {
+                logger.error("Creation of config_dir failed: ", mkdh.cause());
+            }
+        });
+    }
+
+    private void setConfig(final JsonObject obj) {
+        conf.mergeIn(obj);
+        final FileSystem fs = vertx.fileSystem();
+        fs.writeFile(sysConf.getString(CONFIG_PATH_KEY), Buffer.buffer(conf.encodePrettily()), fh -> {
+            if (fh.succeeded()) {
+                logger.info("configuration saved");
+            } else {
+                logger.error("saving config failed", fh.cause());
+            }
+        });
+    }
+
+    private JsonObject getConfig(final JsonObject in) {
+        final JsonObject out = new JsonObject();
 
         if (in.containsKey("keys")) {
             in.getJsonArray("keys").forEach(o -> {
@@ -88,24 +115,11 @@ public class Configuration extends AbstractVerticle {
         return out;
     }
 
-    public void setConfig(JsonObject obj) {
-        conf.mergeIn(obj);
-        FileSystem fs = vertx.fileSystem();
-        fs.writeFile(sysConf.getString("configPath"), Buffer.buffer(conf.encodePrettily()), fh -> {
-            if (fh.succeeded()) {
-                logger.info("configuration saved");
-            }else{
-                logger.error("saving config failed", fh.cause());
-            }
-        });
-    }
-
-
-    public void resetConfig() {
+    private void resetConfig() {
         conf.clear();
-        FileSystem fs = vertx.fileSystem();
-        fs.writeFile(sysConf.getString("configPath"), Buffer.buffer(conf.encode()), fh -> {
-            logger.info("configuration cleared");
-        });
+        final FileSystem fs = vertx.fileSystem();
+        fs.writeFile(sysConf.getString(CONFIG_PATH_KEY),
+            Buffer.buffer(conf.encode()),
+            fh -> logger.info("configuration cleared"));
     }
 }

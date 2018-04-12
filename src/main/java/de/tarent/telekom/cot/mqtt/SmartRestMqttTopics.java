@@ -2,6 +2,10 @@ package de.tarent.telekom.cot.mqtt;
 
 public class SmartRestMqttTopics {
 
+    private SmartRestMqttTopics() {
+        // Private constructor to prevent instantiation.
+    }
+
     private static final String BOOTSTRAP_REQUEST_TOPIC_PREFIX = "ss";
     private static final String BOOTSTRAP_RESPONSE_TOPIC_PREFIX = "sr";
 
