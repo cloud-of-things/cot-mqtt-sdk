@@ -15,7 +15,7 @@ public class SmartRESTHelper {
     String name = "Temperature";
     String unit = "Celsius";
     String type = "c8y_TemperatureMeasurement";
-    float value = 8.77f;
+    float value = 6.77f;
 
     Logger logger = LoggerFactory.getLogger(SmartRESTHelper.class);
 
