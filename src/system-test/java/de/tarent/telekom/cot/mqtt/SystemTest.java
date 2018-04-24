@@ -25,25 +25,24 @@ public class SystemTest {
     final static String MQTT_BROKER_PORT = "8883";
     final static String BOOTSTRAP_USER = "devicebootstrap";
     final static String BOOTSTRAP_PASSWORD = "Fhdt1bb1f";
-    final static String BOOTSTRAP_DEVICE = "mascot4";
+    final static String BOOTSTRAP_DEVICE = "mascot-systemtests-device";
 
     final static String KEY_BOOTSTRAP_USER = "initialUser";
     final static String KEY_BOOTSTRAP_PW = "initialPassword";
     final static String KEY_BROKER_PORT = "brokerPort";
     final static String KEY_BROKER_URI = "brokerURI";
 
-    final static String MSG_DEVICE = "mascot3";
-    final static String MSG_DEVICE_USER = "mascot3";
-    final static String MSG_DEVICE_PW = "TP4NW7!iXi";
+    final static String MSG_DEVICE = "mascot-systemtests-device";
+    final static String MSG_DEVICE_USER = "mascot-systemtests-device";
+    final static String MSG_DEVICE_PW = "nUvgV%8ijZ";
     final static String KEY_MSG_USER = "user";
     final static String KEY_MSG_PW = "password";
-    final static String DEVICE_XID = "mascot-testdevices1";
+    final static String DEVICE_XID = "mascot-testdevices";
     final static String XID = "xId";
-
-    final static String MESSAGE = "15,mascot-testdevices1\n" + "600,mascot3";
 
     MQTTHelper helper;
     Vertx vertx;
+    SmartRESTHelper smartRESTHelper;
 
     Logger logger = LoggerFactory.getLogger(SystemTest.class);
 
@@ -52,6 +51,7 @@ public class SystemTest {
     public void before() {
         helper = MQTTHelper.getInstance();
         vertx = helper.getVertx();
+        smartRESTHelper = new SmartRESTHelper();
     }
 
     @After
@@ -67,8 +67,10 @@ public class SystemTest {
         prop.put(KEY_MSG_USER, MSG_DEVICE_USER);
         prop.put(KEY_MSG_PW, MSG_DEVICE_PW);
 
+        String message = smartRESTHelper.getPayloadMeasurement("3884676", DEVICE_XID, "300");
+
         Async async = context.async();
-        helper.publishMessage(MSG_DEVICE, MESSAGE, prop, back -> {
+        helper.publishMessage(MSG_DEVICE, message, prop, back -> {
             logger.info("Back:" + back);
             context.assertTrue((boolean) back);
             async.complete();
@@ -96,8 +98,10 @@ public class SystemTest {
 
         Async async2 = context.async();
 
+        String message = smartRESTHelper.getPayloadMeasurement("3884676", DEVICE_XID, "300");
+
         helper.subscribeToTopic(MSG_DEVICE, prop, back -> {
-                helper.publishMessage(MSG_DEVICE, MESSAGE, prop, back2 -> {
+                helper.publishMessage(MSG_DEVICE, message, prop, back2 -> {
                     logger.info("Back:" + back2);
                     context.assertTrue((boolean) back2);
                     async2.complete();
