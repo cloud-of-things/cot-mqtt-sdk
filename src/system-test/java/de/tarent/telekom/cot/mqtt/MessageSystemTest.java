@@ -25,18 +25,20 @@ public class MessageSystemTest {
     private static final String MQTT_BROKER_HOST = "nb-iot.int2-ram.m2m.telekom.com";
     private static final String MQTT_BROKER_PORT = "8883";
 
-    private static final String MSG_DEVICE = "mascot3";
-    private static final String MSG_DEVICE_USER = "mascot3";
-    private static final String MSG_DEVICE_PW = "TP4NW7!iXi";
-
-    private static final String MESSAGE = "15,mascot-testdevices1\n" + "600,mascot3";
+    private final static String MSG_DEVICE = "mascot-systemtests-device";
+    private final static String MSG_DEVICE_USER = "mascot-systemtests-device";
+    private final static String MSG_DEVICE_PW = "nUvgV%8ijZ";
+    final static String DEVICE_XID = "mascot-testdevices";
+    final static String XID = "xId";
 
     private MQTTHelper helper;
+    private SmartRESTHelper smartRESTHelper;
 
 
     @Before
     public void before() {
         helper = MQTTHelper.getInstance();
+        smartRESTHelper = new SmartRESTHelper();
     }
 
     @Test
@@ -47,8 +49,10 @@ public class MessageSystemTest {
         prop.put(USER_KEY, MSG_DEVICE_USER);
         prop.put(PASSWORD_KEY, MSG_DEVICE_PW);
 
+        String message = smartRESTHelper.getPayloadMeasurement("3884676", DEVICE_XID, "300");
+
         final Async async = context.async();
-        helper.publishMessage(MSG_DEVICE, MESSAGE, prop, back -> {
+        helper.publishMessage(MSG_DEVICE, message, prop, back -> {
             logger.info("Back:" + back);
             context.assertTrue(back);
             async.complete();
@@ -76,8 +80,10 @@ public class MessageSystemTest {
 
         final Async async2 = context.async();
 
+        String message = smartRESTHelper.getPayloadMeasurement("3884676", DEVICE_XID, "300");
+
         helper.subscribeToTopic(MSG_DEVICE, prop, back -> {
-                helper.publishMessage(MSG_DEVICE, MESSAGE, prop, back2 -> {
+                helper.publishMessage(MSG_DEVICE, message, prop, back2 -> {
                     logger.info("Back:" + back2);
                     context.assertTrue(back2);
                     async2.complete();
