@@ -113,6 +113,15 @@ publishing {
 
             artifact packageSources
             artifact packageJavadoc
+
+            pom.withXml{
+                asNode().appendNode('description', 'sdk to wrap bootstrapping, publishing and subscriptions to CoT')
+                asNode().appendNode('url', 'https://github.com/cloud-of-things/cot-mqtt-sdk')
+                def lic = asNode().appendNode('licenses').appendNode('license')
+                lic.appendNode ('name', 'MIT')
+                lic.appendNode('comments', 'All rights reserved. Feel free to use in your CoT IoT projects.')
+                lic.appendNode('url','https://opensource.org/licenses/MIT')
+            }
         }
     }
     repositories {
