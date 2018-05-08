@@ -72,7 +72,7 @@ repositories {
     }
 }
 
-group = 'de.tarent.telekom.cot'
+group = 'com.telekom.m2m.cot'
 sourceCompatibility = '1.8'
 
 dependencies {
