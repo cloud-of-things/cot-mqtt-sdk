@@ -61,6 +61,29 @@ public class MessageSystemTest {
     }
 
     @Test
+    public void publishAndCheckSuccess(final TestContext context) {
+        final Properties prop = new Properties();
+        prop.put(BROKER_URI_KEY, MQTT_BROKER_HOST);
+        prop.put(BROKER_PORT_KEY, MQTT_BROKER_PORT);
+        prop.put(USER_KEY, MSG_DEVICE_USER);
+        prop.put(PASSWORD_KEY, MSG_DEVICE_PW);
+
+        String message = smartRESTHelper.getPayloadMeasurement("3884676", DEVICE_XID, "300");
+
+        final Async async = context.async(30);
+        for (int i = 0 ; i < 30; i++ ) {
+
+            final int count = i;
+            helper.publishMessage(MSG_DEVICE, message, prop, back -> {
+                logger.info("Back"+ count+": " + back);
+                context.assertTrue(back);
+                async.countDown();
+            });
+        }
+        async.awaitSuccess(30000);
+    }
+
+    @Test
     public void subscribeAndPublish(final TestContext context) throws InterruptedException {
         final Properties prop = new Properties();
         prop.put(BROKER_URI_KEY, MQTT_BROKER_HOST);
