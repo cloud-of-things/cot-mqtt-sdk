@@ -55,9 +55,21 @@ public class Configuration extends AbstractVerticle {
     private void deployConfig(final AsyncResult<JsonObject> ch) {
         sysConf.mergeIn(ch.result());
         final FileSystem fs = vertx.fileSystem();
-        final String dir = sysConf.getString("user.home") + "/.nbiot";
-        final String path = dir + "/config.json";
-        sysConf.put(CONFIG_PATH_KEY, path);
+        final String dir;
+        final String path;
+        if (sysConf.containsKey(CONFIG_PATH_KEY)){
+            path = sysConf.getString(CONFIG_PATH_KEY);
+            int slash = path.lastIndexOf(sysConf.getString("file.separator"));
+            if (slash > -1) {
+                dir = path.substring(0, slash);
+            }else{
+                dir = System.getProperty("user.dir");
+            }
+        }else {
+            dir = sysConf.getString("user.home") + "/.nbiot";
+            path = dir + "/config.json";
+            sysConf.put(CONFIG_PATH_KEY, path);
+        }
         fs.exists(path, fh -> {
             if (fh.succeeded() && fh.result()) {
                 readFile(fs, path);

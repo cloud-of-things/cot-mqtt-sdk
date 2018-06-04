@@ -198,6 +198,11 @@ _The default is always *1* (at least once)_.
 Furthermore, all methods require at least one *Callback* so that the method results and
 additional information can be processed.
 
+=== Configuration
+Information received over the REST apis like device credentials are saved in a configuration file.
+The location and name of the file is ~/.nbiot/config.json per default but could set by environment variable or Java system property named "configPath".
+If the variable contains only a filename without path, working dir of application will be used.
+
 == Q&A
 [qanda]
 How do I know which property keys exist?::
