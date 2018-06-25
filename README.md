@@ -30,6 +30,10 @@ https://github.com/cloud-of-things/cot-mqtt-sdk
 
 The API docs are located under https://cloud-of-things.github.io/cot-mqtt-sdk/
 
+#### License
+
+The API is licensed under MIT license. With the gradle task generateLicenseReport you can
+get a report of license included software uses
 
 ### User Manual
 After the API is included in your Project, you can use the method `getInstance()` to
