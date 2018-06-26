@@ -50,6 +50,10 @@ For more information regarding these methods (explanation, examples, etc.) pleas
 see the asciidoc located at "asciidoc/README.adoc".
 
 ### Release notes
+
+#### Version 1.0.0
+- LICENSE and NOTICE files included
+- improved stability of integration tests
 #### Version 0.5.3
 - *bootstrapping* - nbIoT-devices can now be bootstrapped and receives the
 credentials from CoT, persists device data in the nbIoT environment and creates
