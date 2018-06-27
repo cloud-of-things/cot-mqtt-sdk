@@ -12,6 +12,8 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,18 +29,42 @@ public class VertxMessageIT {
     static Logger logger = LoggerFactory.getLogger(VertxMessageIT.class);
     static MQTTHelper helper;
 
+    String serverId = "";
+    String clientId = "";
 
-    @BeforeClass
-    public static void beforeClass() {
-        Vertx vc = Vertx.vertx();
+    Vertx vc = Vertx.vertx();
+
+    @Before
+    public void before(TestContext ctx) {
+        Async async = ctx.async(2);
         MQTTTestServer server = new MQTTTestServer();
         vc.deployVerticle(server, h-> {
             if (h.succeeded()){
+                serverId = h.result();
                 MQTTTestClient client = new MQTTTestClient(false);
-                vc.deployVerticle(client);
+                async.countDown();
+                vc.deployVerticle(client, cl ->{
+                    if (cl.succeeded()){
+                        clientId = cl.result();
+                        async.countDown();
+                    }
+                });
             }
         });
+        async.awaitSuccess();
         helper = MQTTHelper.getInstance(vc);
+    }
+
+    @After
+    public void after(TestContext ctx){
+        Async async = ctx.async(2);
+        vc.undeploy(clientId, complete ->{
+            async.countDown();
+        });
+        vc.undeploy(serverId, complete ->{
+            async.countDown();
+        });
+        async.awaitSuccess();
     }
 
     @Test
@@ -91,7 +117,7 @@ public class VertxMessageIT {
             async.complete();
         });
 
-        async.awaitSuccess(3000);
+        async.awaitSuccess(5000);
     }
 
     @Test

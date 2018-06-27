@@ -32,7 +32,8 @@ The API docs are located under https://cloud-of-things.github.io/cot-mqtt-sdk/
 
 #### License
 
-The API is licensed under MIT license. With the gradle task generateLicenseReport you can
+The API is licensed under MIT license. 
+With the gradle task **generateLicenseReport** you can
 get a report of license included software uses
 
 ### User Manual
@@ -50,6 +51,10 @@ For more information regarding these methods (explanation, examples, etc.) pleas
 see the asciidoc located at "asciidoc/README.adoc".
 
 ### Release notes
+
+#### Version 1.0.0
+- LICENSE and NOTICE files included
+- improved stability of integration tests
 #### Version 0.5.3
 - *bootstrapping* - nbIoT-devices can now be bootstrapped and receives the
 credentials from CoT, persists device data in the nbIoT environment and creates
