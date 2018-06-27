@@ -182,8 +182,27 @@ helper.unsubscribeFromTopic(deviceId, properties, callback);
  this should be used when putting your properties together.
 
 === Other important information
+* *_Java Keystore creation guide (client.jks)_* To create a java keystore run the following command
+in your linux/OSX shell/console (There will be some fields that need to be filled, pick a password
+you will remember for a following step):
+[source,shell]
+----
+keytool -genkey -alias client -keyalg RSA -keystore client.jks
+----
+Now we have to add the certificates into our keystore the *.cer can be added as follows:
+[source,shell]
+----
+keytool -import -file <cer_certificate_name>.cer -keystore client.jks
+----
+The *.crt can be added as follows (Important: the alias is not allowed to have the .crt at the end!):
+[source,shell]
+----
+keytool -import -file <crt_certificate_name>.crt -keystore client.jks -alias <crt_certificate_name>
+----
+Your client.jks is now complete and you can follow the next point on how to use it by setting the
+keyStorePath and keyStorePassword properties.
 
-* *_SSL_* This value can be turned off if the property `"ssl", "false"` ist set in
+* *_SSL_* This value can be turned off if the property `"ssl", "false"` is set in
 the Property object given in the above methods. If you want to use SSL, then you have
 to either set the following Properties: `"keyStorePath", <pathToKeystore>`;
 `"keyStorePassword", <keyStorePassword>` or create a Directory where the jar
