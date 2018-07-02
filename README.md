@@ -9,8 +9,8 @@ without having to implement it themselves. The API is based on **Vert.x**.
 ```xml
 <dependency>
     <groupId>de.tarent.telekom.cot</groupId>
-    <artifactId>nbiot-mqtt</artifactId>
-    <version>version-number</version>    
+    <artifactId>cot-mqtt-sdk</artifactId>
+    <version>com.telekom.m2m.cot</version>    
 </dependency>
 ```
  

@@ -25,6 +25,7 @@ apply plugin: "net.linguica.maven-settings"
 apply plugin: "maven-publish"
 apply plugin: "org.sonarqube"
 apply plugin: "jacoco"
+apply plugin: "signing"
 
 ext {
     vertxVersion = '3.5.1'
@@ -110,6 +111,11 @@ task wrapper(type: Wrapper) {
     gradleVersion = '4.0'
 }
 
+signing {
+    sign configurations.archives
+}
+
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -132,6 +138,14 @@ publishing {
         maven {
             name "${project.version.endsWith('-SNAPSHOT') ? 'nbiot-snapshots':'nbiot-releases'}"
             url "${wBenchNexusUrl}/content/repositories/${project.version.endsWith('-SNAPSHOT') ? 'nbiot-snapshots':'nbiot-releases'}"
+        }
+        maven {
+            name "${project.version.endsWith('-SNAPSHOT') ? 'snapshots':'releases'}"
+            url "${sonatypeUrl}/content/repositories/${project.version.endsWith('-SNAPSHOT') ? 'snapshots':'releases'}"
+            credentials {
+                username 'username'
+                password 'password'
+            }
         }
     }
 }
