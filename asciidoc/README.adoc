@@ -14,8 +14,8 @@ contact team MasCoT at telekom-mascot@lists.tarent.de_
 [source,xml]
 ----
 <dependency>
-    <groupId>de.tarent.telekom.cot</groupId>
-    <artifactId>nbiot-mqtt</artifactId>
+    <groupId>com.telekom.m2m.cot</groupId>
+    <artifactId>cot-mqtt-sdk</artifactId>
     <version>version-number</version> <!--1-->
 </dependency>
 ----
