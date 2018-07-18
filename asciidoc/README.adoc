@@ -23,15 +23,11 @@ contact team MasCoT at telekom-mascot@lists.tarent.de_
 *Gradle:*
 [source,groovy]
 ----
-compile "de.tarent.telekom.cot:nbiot-mqtt:version-number" // <1>
+compile "com.telekom.m2m.cot:cot-mqtt-sdk:version-number" // <1>
 ----
 <1> Please use the latest release version, not the SNAPSHOT.
 
 === Repository Location
-
-https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/[https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/]
-
-or the released version here:
 
 https://github.com/cloud-of-things/cot-mqtt-sdk[https://github.com/cloud-of-things/cot-mqtt-sdk]
 
