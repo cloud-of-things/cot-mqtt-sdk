@@ -165,5 +165,3 @@ nbdist/
 /.gradle/
 /.idea/
 /build/
-
-certificates/

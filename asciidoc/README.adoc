@@ -178,9 +178,10 @@ helper.unsubscribeFromTopic(deviceId, properties, callback);
  this should be used when putting your properties together.
 
 === Other important information
-* *_Java Keystore creation guide (client.jks)_* To create a java keystore run the following command
-in your linux/OSX shell/console (There will be some fields that need to be filled, pick a password
-you will remember for a following step):
+* *_Java Keystore creation guide (client.jks)_* If you do not wish to use the preexisting client.jks
+found in the certificates directory, here is a small guide to get you started on creating your own.
+To create a java keystore run the following command in your linux/OSX shell/console (There will be
+some fields that need to be filled, pick a password you will remember for a following step):
 [source,shell]
 ----
 keytool -genkey -alias client -keyalg RSA -keystore client.jks
@@ -203,7 +204,8 @@ the Property object given in the above methods. If you want to use SSL, then you
 to either set the following Properties: `"keyStorePath", <pathToKeystore>`;
 `"keyStorePassword", <keyStorePassword>` or create a Directory where the jar
 file exists called "certificates" and place a client.jks file that contains both
-certificates and uses the password "kVJEgEVwn3TB9BPA" within.
+certificates within. If you use the preexisting client.jks from the certificates directory,
+it will use the password "kVJEgEVwn3TB9BPA".
 
 * *_QoS_* Needs to have one of the following values: *0* (at most once), *1*
 (at least once), *2* (exactly once), or left empty if it doesn't matter.
