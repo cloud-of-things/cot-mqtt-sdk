@@ -95,7 +95,6 @@ dependencies {
     compile "io.vertx:vertx-config:$vertxVersion"
     compile "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
     compile "com.google.code.findbugs:jsr305:$findbugsVersion"
-    compile 'de.tarent.telekom.cot.connector.administration:common-database:0.1'
 
     testCompile "io.vertx:vertx-unit:$vertxVersion"
     testCompile "junit:junit:$junitVersion"
