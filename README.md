@@ -8,21 +8,18 @@ without having to implement it themselves. The API is based on **Vert.x**.
 **Maven**:
 ```xml
 <dependency>
-    <groupId>de.tarent.telekom.cot</groupId>
+    <groupId>com.telekom.m2m.cot</groupId>
     <artifactId>cot-mqtt-sdk</artifactId>
-    <version>com.telekom.m2m.cot</version>    
+    <version>version-number</version>    
 </dependency>
 ```
  
 **Gradle:**
 ```groovy
-compile "de.tarent.telekom.cot:nbiot-mqtt:version-number"
+compile "com.telekom.m2m.cot:cot-mqtt-sdk:version-number"
 ```
 
-#### You can find the repository here:
-https://infinity-wbench.wesp.telekom.net/gitlab/nbiot-connector/nbiot-mqtt/
-
-or the released version here:
+#### Repository Location
 
 https://github.com/cloud-of-things/cot-mqtt-sdk
 
