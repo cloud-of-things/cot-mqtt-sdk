@@ -142,8 +142,8 @@ publishing {
             name "${project.version.endsWith('-SNAPSHOT') ? 'snapshots':'releases'}"
             url "${sonatypeUrl}/content/repositories/${project.version.endsWith('-SNAPSHOT') ? 'snapshots':'releases'}"
             credentials {
-                username 'username'
-                password 'password'
+                username "$ossrhUsername"
+                password "$ossrhPassword"
             }
         }
     }
